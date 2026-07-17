@@ -47,7 +47,7 @@ export function CartDrawer({ open, onClose }) {
             <ShoppingCart className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <h3
               className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-heading)' }}
+              style={{ color: 'var(--color-text-primary)' }}
             >
               Tu pedido
             </h3>

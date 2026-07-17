@@ -75,7 +75,7 @@ export default function HomeClient() {
             </span>
             <h1
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-logo)",
                 fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
                 fontWeight: 400,
                 lineHeight: 0.98,
@@ -155,7 +155,6 @@ export default function HomeClient() {
             </span>
             <h2
               style={{
-                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(2rem, 4vw, 2.75rem)",
                 fontWeight: 400,
                 color: "var(--color-text-primary)",
@@ -187,7 +186,6 @@ export default function HomeClient() {
                 <h3
                   className="text-lg font-semibold mb-2"
                   style={{
-                    fontFamily: "var(--font-heading)",
                     color: "var(--color-text-primary)",
                   }}
                 >
@@ -224,7 +222,6 @@ export default function HomeClient() {
             </span>
             <h2
               style={{
-                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(2rem, 4vw, 2.75rem)",
                 fontWeight: 400,
                 color: "var(--color-text-primary)",
@@ -254,7 +251,6 @@ export default function HomeClient() {
                   <h3
                     className="text-lg font-semibold mb-4"
                     style={{
-                      fontFamily: "var(--font-heading)",
                       color: "var(--color-text-primary)",
                     }}
                   >
@@ -308,50 +304,46 @@ export default function HomeClient() {
 
       {/* ── CTA FINAL ── */}
       <section
-        className="px-4 sm:px-6 lg:px-8"
+        className="relative px-4 sm:px-6 lg:px-8 overflow-hidden"
         style={{
-          backgroundColor: "var(--color-surface)",
-          paddingTop: "6rem",
-          paddingBottom: "6rem",
+          minHeight: "24rem",
         }}
       >
-        <div className="max-w-2xl mx-auto text-center">
-          <h2
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
-              fontWeight: 400,
-              lineHeight: 1.1,
-              color: "var(--color-text-primary)",
-              marginBottom: "1rem",
-            }}
-          >
-            {cta.title}
-          </h2>
-          <p
-            className="mb-8"
-            style={{
-              color: "var(--color-text-secondary)",
-              lineHeight: 1.7,
-              fontSize: "0.95rem",
-            }}
-          >
-            {cta.subtitle}
-          </p>
-          <Link
-            href={cta.buttonLink}
-            className="inline-flex items-center justify-center gap-2 font-medium text-sm transition-all duration-300 hover:-translate-y-0.5"
-            style={{
-              padding: "1rem 2.5rem",
-              borderRadius: "2rem",
-              backgroundColor: "var(--color-primary)",
-              color: "#ffffff",
-              boxShadow: "0 8px 30px rgba(100,180,1,0.25)",
-            }}
-          >
-            {cta.buttonText}
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        <img
+          src="/cta.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          aria-hidden="true"
+        />
+        <div className="relative z-10 flex flex-col items-center justify-end h-full" style={{ minHeight: "24rem" }}>
+          <div className="text-center pb-12">
+            <h2
+              style={{
+                fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
+                fontWeight: 400,
+                lineHeight: 1.1,
+                color: "#ffffff",
+                textShadow: "0 2px 12px rgba(0,0,0,0.5)",
+                marginBottom: "1rem",
+              }}
+            >
+              {cta.title}
+            </h2>
+            <Link
+              href={cta.buttonLink}
+              className="inline-flex items-center justify-center gap-2 font-medium text-sm transition-all duration-300 hover:-translate-y-0.5"
+              style={{
+                padding: "1rem 2.5rem",
+                borderRadius: "2rem",
+                backgroundColor: "var(--color-primary)",
+                color: "#ffffff",
+                boxShadow: "0 8px 30px rgba(100,180,1,0.25)",
+              }}
+            >
+              {cta.buttonText}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
     </main>

@@ -383,7 +383,6 @@ export default function Products() {
 
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
               fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
               fontWeight: 400,
               lineHeight: 1.05,

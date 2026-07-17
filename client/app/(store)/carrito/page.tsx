@@ -59,7 +59,6 @@ function CartEmpty({ emptyTitle, emptyMessage, browseProducts }) {
             </span>
             <h1
               className="text-4xl md:text-5xl font-normal tracking-tight text-[var(--color-text-primary)] mb-2"
-              style={{ fontFamily: "var(--font-heading)" }}
             >
               {emptyTitle}
             </h1>
@@ -200,7 +199,6 @@ export default function Cart() {
               </span>
               <h1
                 className="text-4xl md:text-5xl font-normal tracking-tight text-[var(--color-text-primary)]"
-                style={{ fontFamily: "var(--font-heading)" }}
               >
                 {title}
               </h1>
@@ -263,7 +261,6 @@ export default function Cart() {
                 <div className="px-6 pt-6 pb-4">
                   <h3
                     className="text-lg font-normal text-[var(--color-text-primary)] mb-1"
-                    style={{ fontFamily: "var(--font-heading)" }}
                   >
                     Resumen
                   </h3>

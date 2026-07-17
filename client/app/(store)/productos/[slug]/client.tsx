@@ -149,7 +149,6 @@ export default function ProductDetailClient({ product }: { product: any }) {
             {/* Nombre */}
             <h1
               style={{
-                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(2rem, 4vw, 3rem)",
                 fontWeight: 400,
                 lineHeight: 1.1,
@@ -384,7 +383,6 @@ export default function ProductDetailClient({ product }: { product: any }) {
               </span>
               <h2
                 style={{
-                  fontFamily: "var(--font-heading)",
                   fontSize: "1.75rem",
                   fontWeight: 400,
                   color: "var(--color-text-primary)",

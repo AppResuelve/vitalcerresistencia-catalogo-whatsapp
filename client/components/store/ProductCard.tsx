@@ -88,9 +88,8 @@ export function ProductCard({ product }) {
         <Link href={`/productos/${product.slug}`} className="block flex-1">
           <h3
             className="line-clamp-2 mb-0.5"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "1rem",
+              style={{
+                fontSize: "1rem",
               fontWeight: 500,
               lineHeight: 1.3,
               color: "var(--color-text-primary)",

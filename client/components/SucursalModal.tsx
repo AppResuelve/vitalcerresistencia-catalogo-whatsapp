@@ -61,7 +61,6 @@ export default function SucursalModal({ open, onClose }) {
           <h3
             id="sucursal-modal-title"
             style={{
-              fontFamily: "var(--font-heading)",
               fontSize: "1.25rem",
               fontWeight: 400,
               color: "var(--color-text-primary)",

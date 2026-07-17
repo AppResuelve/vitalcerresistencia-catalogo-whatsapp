@@ -73,10 +73,10 @@ export const content = {
     categoriesTitle: 'Categorías',
     categoriesSubtitle: 'Explorá por tipo de producto',
     cta: {
-      title: '¿Tenés alguna consulta?',
-      subtitle: 'Escribinos y te asesoramos sobre nuestros productos.',
-      buttonText: 'Contactanos',
-      buttonLink: '/contacto',
+      title: 'Descubrí todo lo que tenemos para vos',
+      subtitle: 'Frutos secos, semillas, hierbas, suplementos y mucho más.',
+      buttonText: 'Ver catálogo',
+      buttonLink: '/productos',
     },
   },
 

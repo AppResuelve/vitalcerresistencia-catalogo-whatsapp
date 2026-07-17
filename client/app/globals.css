@@ -26,7 +26,8 @@
   --color-border-hover: #D4D0C8;
 
   /* Tipografías */
-  --font-heading: "Lobster", cursive;
+  --font-heading: "Bebas Neue", sans-serif;
+  --font-logo: "Lobster", cursive;
   --font-body: "Source Sans 3", sans-serif;
   --font-admin: "DM Sans", sans-serif;
 

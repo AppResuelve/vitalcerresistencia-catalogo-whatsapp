@@ -27,7 +27,6 @@ export default function Contact() {
           </span>
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
               fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
               fontWeight: 400,
               lineHeight: 1.05,
@@ -69,7 +68,6 @@ export default function Contact() {
                 <h3
                   className="text-lg font-semibold mb-4"
                   style={{
-                    fontFamily: "var(--font-heading)",
                     color: "var(--color-text-primary)",
                   }}
                 >
