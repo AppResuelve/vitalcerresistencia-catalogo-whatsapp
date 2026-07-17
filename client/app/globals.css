@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  /* Primario — verde Vitalcer */
+  --color-primary: #64B401;
+  --color-primary-hover: #559800;
+  --color-primary-light: rgba(100,180,1,0.12);
+
+  /* Secundario — marrón cuero */
+  --color-secondary: #846C42;
+  --color-secondary-hover: #6E5A38;
+  --color-secondary-light: rgba(132,108,66,0.12);
+
+  /* Fondos */
+  --color-background: #FAFAF5;
+  --color-surface: #FFFFFF;
+  --color-card: #FFFFFF;
+
+  /* Texto */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #5A5A5A;
+  --color-text-muted: #9A9A9A;
+
+  /* Bordes */
+  --color-border: #E5E5E0;
+  --color-border-hover: #D4D0C8;
+
+  /* Tipografías */
+  --font-heading: "Lobster", cursive;
+  --font-body: "Source Sans 3", sans-serif;
+  --font-admin: "DM Sans", sans-serif;
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+/* ── Body global ── */
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+h4, h5, h6 {
+  font-family: var(--font-body);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary-hover); }
+
+::selection { background-color: rgba(100, 180, 1, 0.15); color: var(--color-text-primary); }
+
+/* ── Admin: overrides via :has() ── */
+body:has(.admin-root) {
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: var(--font-admin);
+}
+
+body:has(.admin-root) h1,
+body:has(.admin-root) h2,
+body:has(.admin-root) h3,
+body:has(.admin-root) h4,
+body:has(.admin-root) h5,
+body:has(.admin-root) h6 {
+  font-family: var(--font-admin);
+}
+
+body:has(.admin-root) ::-webkit-scrollbar-track { background: #18181b; }
+body:has(.admin-root) ::-webkit-scrollbar-thumb { background: #3f3f46; }
+body:has(.admin-root) ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+body:has(.admin-root) ::selection {
+  background-color: rgba(6, 182, 212, 0.15);
+  color: #f4f4f5;
+}
+
+@layer base {
+  .admin-root button,
+  .admin-root [role="button"],
+  .admin-root a {
+    cursor: pointer;
+  }
+}
