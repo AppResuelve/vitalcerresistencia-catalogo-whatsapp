@@ -13,6 +13,7 @@ import {
   Cookie,
 } from "lucide-react";
 import { content, siteData } from "@/data/siteData";
+import { BannerCarousel } from "@/components/store/BannerCarousel";
 
 const CATEGORIES = [
   {
@@ -48,8 +49,14 @@ const CATEGORIES = [
 ];
 
 export default function HomeClient() {
-  const { hero, featuredTitle, featuredSubtitle, categoriesTitle, categoriesSubtitle, cta } =
-    content.home;
+  const {
+    hero,
+    featuredTitle,
+    featuredSubtitle,
+    categoriesTitle,
+    categoriesSubtitle,
+    cta,
+  } = content.home;
 
   return (
     <main>
@@ -135,6 +142,18 @@ export default function HomeClient() {
           </div>
         </div>
       </section>
+
+      {/* ── BANNER CARRUSEL ── */}
+      <BannerCarousel
+        images={[
+          "/banner/banner1.webp",
+          {
+            desktop: "/banner/banner2.webp",
+            mobile: "/banner/banner2mobile.webp",
+          },
+          // "/banner/banner3.webp",
+        ]}
+      />
 
       {/* ── CATEGORÍAS ── */}
       <section
@@ -315,7 +334,10 @@ export default function HomeClient() {
           className="absolute inset-0 w-full h-full object-cover"
           aria-hidden="true"
         />
-        <div className="relative z-10 flex flex-col items-center justify-end h-full" style={{ minHeight: "24rem" }}>
+        <div
+          className="relative z-10 flex flex-col items-center justify-end h-full"
+          style={{ minHeight: "24rem" }}
+        >
           <div className="text-center pb-12">
             <h2
               style={{
