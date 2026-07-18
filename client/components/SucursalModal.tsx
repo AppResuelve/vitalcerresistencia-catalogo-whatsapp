@@ -125,7 +125,7 @@ export default function SucursalModal({ open, onClose }) {
                     style={{ color: "var(--color-primary)" }}
                   />
                   <span
-                    className="text-xs"
+                    className="text-xs whitespace-pre-line"
                     style={{ color: "var(--color-text-secondary)" }}
                   >
                     {sucursal.horarios}

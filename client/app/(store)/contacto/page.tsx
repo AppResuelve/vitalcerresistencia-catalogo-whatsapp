@@ -92,7 +92,7 @@ export default function Contact() {
                       style={{ color: "var(--color-primary)" }}
                     />
                     <span
-                      className="text-sm"
+                      className="text-sm whitespace-pre-line"
                       style={{ color: "var(--color-text-secondary)" }}
                     >
                       {sucursal.horarios}

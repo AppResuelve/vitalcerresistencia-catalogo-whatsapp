@@ -33,7 +33,7 @@ export const siteData = {
       name: 'Sucursal Centro',
       address: 'Av. Paraguay 78',
       phone: '5493625217986',
-      horarios: 'Lunes a sábado: 8:30 a 12:30 y 16:30 a 20:30',
+      horarios: 'Lun a vie: 8:30 a 12:30 y 16:30 a 20:30\nSáb: 9 a 13 y 16:30 a 20:30',
       image: '/sucursales/paraguay.jpg',
     },
     {
@@ -41,7 +41,7 @@ export const siteData = {
       name: 'Sucursal Illia',
       address: 'Av. Illia 387',
       phone: '5493624963955',
-      horarios: 'Lunes a sábado: 8:30 a 12:30 y 16:30 a 20:30',
+      horarios: 'Lun a vie: 8:30 a 12:30 y 16:30 a 20:30\nSáb: 9 a 13 y 16:30 a 20:30',
       image: '/sucursales/illia.webp',
     },
     {
@@ -49,7 +49,7 @@ export const siteData = {
       name: 'Sucursal 9 de Julio',
       address: 'Av. 9 de Julio 160',
       phone: '5493624986044',
-      horarios: 'Lunes a sábado: 8:00 a 12:30 y 17:00 a 20:30',
+      horarios: 'Lun a vie: 8 a 12:30 y 17 a 20:30\nSáb: 9 a 13 y 17 a 20:30',
       image: '/sucursales/9dejulio.jpg',
     },
   ],

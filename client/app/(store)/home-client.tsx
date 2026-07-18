@@ -61,21 +61,24 @@ export default function HomeClient() {
   return (
     <main>
       {/* ── HERO ── */}
-      <section
-        className="relative min-h-[92vh] flex overflow-hidden"
-        style={{ backgroundColor: "var(--color-bg, #1A1A1A)" }}
-      >
+      <section className="relative min-h-[92vh] flex overflow-hidden">
+        <img
+          src="/hero/hero-image.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          aria-hidden="true"
+        />
         {/* Overlay */}
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: "rgba(26,26,26,0.75)" }}
+          style={{ backgroundColor: "rgba(26,26,26,0.55)" }}
           aria-hidden="true"
         />
 
         <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-24 flex flex-col min-h-[92vh]">
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <span
-              className="text-xs font-medium tracking-[0.25em] uppercase block mb-4"
+              className="text-lg md:text-2xl font-medium bg-black/10 max-md:bg-black/80 px-4 py-2 max-md:p-0 max-md:px-2 rounded-full tracking-[0.25em] uppercase block mb-8 shadow-lg shadow-black/15 max-md:shadow-black"
               style={{ color: "var(--color-primary)" }}
             >
               {hero.badge}
@@ -294,7 +297,7 @@ export default function HomeClient() {
                         style={{ color: "var(--color-primary)" }}
                       />
                       <span
-                        className="text-sm"
+                        className="text-sm whitespace-pre-line"
                         style={{ color: "var(--color-text-secondary)" }}
                       >
                         {sucursal.horarios}
