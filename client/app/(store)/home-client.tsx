@@ -369,7 +369,7 @@ export default function HomeClient() {
         className="relative overflow-hidden"
         style={{ minHeight: "24rem" }}
       >
-        <div className="absolute inset-0 grid grid-cols-4">
+        <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-4">
           <div
             className="w-full h-full"
             style={{
@@ -395,7 +395,7 @@ export default function HomeClient() {
             }}
           />
           <div
-            className="w-full h-full"
+            className="hidden md:block w-full h-full"
             style={{
               backgroundImage: "url(/categorias/semillas-legumbres.jpeg)",
               backgroundSize: "cover",
@@ -410,37 +410,35 @@ export default function HomeClient() {
           aria-hidden="true"
         />
         <div
-          className="relative z-10 flex flex-col items-center justify-end h-full px-4 sm:px-6 lg:px-8"
+          className="relative z-10 flex flex-col items-center justify-start h-full gap-10 px-4 sm:px-6 lg:px-8 py-12"
           style={{ minHeight: "24rem" }}
         >
-          <div className="text-center pb-12">
-            <h2
-              style={{
-                fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
-                fontWeight: 400,
-                lineHeight: 1.1,
-                color: "#ffffff",
-                textShadow: "0 2px 12px rgba(0,0,0,0.5)",
-                marginBottom: "1rem",
-              }}
-            >
-              {cta.title}
-            </h2>
-            <Link
-              href={cta.buttonLink}
-              className="inline-flex items-center justify-center gap-2 font-medium text-sm transition-all duration-300 hover:-translate-y-0.5"
-              style={{
-                padding: "1rem 2.5rem",
-                borderRadius: "2rem",
-                backgroundColor: "var(--color-primary)",
-                color: "#ffffff",
-                boxShadow: "0 8px 30px rgba(100,180,1,0.25)",
-              }}
-            >
-              {cta.buttonText}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <h2
+            style={{
+              fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
+              fontWeight: 400,
+              lineHeight: 1.1,
+              color: "#ffffff",
+              textShadow: "0 2px 12px rgba(0,0,0,0.5)",
+              textAlign: "center",
+            }}
+          >
+            {cta.title}
+          </h2>
+          <Link
+            href={cta.buttonLink}
+            className="inline-flex items-center justify-center gap-2 font-medium text-sm transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              padding: "1rem 2.5rem",
+              borderRadius: "2rem",
+              backgroundColor: "var(--color-primary)",
+              color: "#ffffff",
+              boxShadow: "0 8px 30px rgba(100,180,1,0.25)",
+            }}
+          >
+            {cta.buttonText}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
     </main>

@@ -6,7 +6,7 @@ export const baseMetadata = {
     template: `%s — Vitalcer Resistencia`,
   },
   description: 'Alimentación consciente y productos naturales en Resistencia, Chaco',
-  icons: [{ url: '/logotipo.png' }],
+  icons: { icon: '/favicon.png' },
   openGraph: {
     siteName: 'Vitalcer Resistencia',
     images: [`${BASE_URL}/og-image.jpg`],
