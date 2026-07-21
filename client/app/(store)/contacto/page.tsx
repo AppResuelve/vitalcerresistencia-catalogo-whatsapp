@@ -1,11 +1,22 @@
 // @ts-nocheck
 "use client";
 
+import { useState } from "react";
 import { MapPin, Clock, Phone, Mail, MessageCircle } from "lucide-react";
 import { content, siteData } from "@/data/siteData";
 
+const SUCURSALES_MAP = {
+  centro: "Av. Paraguay 78, Resistencia, Chaco, Argentina",
+  illia: "Av. Illia 387, Resistencia, Chaco, Argentina",
+  julio: "Av. 9 de Julio 160, Resistencia, Chaco, Argentina",
+};
+
 export default function Contact() {
   const { title, subtitle } = content.contact;
+  const [selected, setSelected] = useState("centro");
+
+  const address = SUCURSALES_MAP[selected];
+  const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=16&ie=UTF8&iwloc=&output=embed`;
 
   return (
     <>
@@ -50,10 +61,7 @@ export default function Contact() {
       </section>
 
       {/* Sucursales */}
-      <section
-        className="px-4 sm:px-6 lg:px-8"
-        style={{ paddingBottom: "6rem" }}
-      >
+      <section className="px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6">
             {siteData.sucursales.map((sucursal) => (
@@ -154,6 +162,54 @@ export default function Contact() {
             >
               vitalcer.resistencia@gmail.com
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ MAPA — dinámico por sucursal ══ */}
+      <section className="px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="max-w-5xl mx-auto">
+          <div
+            className="relative rounded-2xl overflow-hidden"
+            style={{
+              border: "1px solid var(--color-border)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+            }}
+          >
+            {/* Botones de selección */}
+            <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+              {siteData.sucursales.map((sucursal) => {
+                const id = sucursal.id;
+                const isActive = selected === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setSelected(id)}
+                    className="px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200"
+                    style={{
+                      backgroundColor: isActive
+                        ? "var(--color-primary)"
+                        : "rgba(255,255,255,0.9)",
+                      color: isActive ? "#ffffff" : "var(--color-text-primary)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    {sucursal.name.replace("Sucursal ", "")}
+                  </button>
+                );
+              })}
+            </div>
+
+            <iframe
+              title="Sucursales Vitalcer"
+              src={mapSrc}
+              width="100%"
+              height="360"
+              style={{ border: 0, display: "block" }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
         </div>
       </section>
