@@ -408,7 +408,7 @@ export default function Products() {
       </section>
 
       {/* ══ CONTENIDO ══ */}
-      <section className="bg-white pb-20 px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8">
+      <section className="bg-white pb-20 px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8 min-h-[calc(100vh-8rem)]">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-0 lg:gap-8">
             {/* Sidebar */}

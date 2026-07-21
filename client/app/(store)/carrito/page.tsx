@@ -5,6 +5,7 @@ import { ShoppingCart, ArrowLeft, Leaf } from "lucide-react";
 import { content, siteData } from "@/data/siteData";
 import { formatPrice } from "@/utils/formatPrice";
 import { useCart } from "@/context/CartContext";
+import { useOrder } from "@/context/OrderContext";
 import { CartItem } from "@/components/store/CartItem";
 import { ordersService } from "@/services/storeService";
 
@@ -108,6 +109,7 @@ function CartEmpty({ emptyTitle, emptyMessage, browseProducts }) {
 ══════════════════════════════════════════════════════════════════════ */
 export default function Cart() {
   const { items, totalItems, totalPrice } = useCart();
+  const { requestOrder } = useOrder();
   const {
     title,
     emptyTitle,
@@ -139,17 +141,12 @@ export default function Cart() {
     return encodeURIComponent(message);
   };
 
-  const openWhatsApp = (message) => {
-    const whatsappLink = `https://wa.me/${siteData.sucursales[0].phone}?text=${message}`;
-    window.open(whatsappLink, "_blank");
-  };
-
   const productItems = items.filter(i => i.type !== 'service')
   const serviceItems = items.filter(i => i.type === 'service')
 
   const handleRequest = () => {
     const message = generateWhatsAppMessage();
-    openWhatsApp(message);
+    requestOrder(message);
     ordersService.create({
       items: items.map((i) => ({
         productId: i.productId,

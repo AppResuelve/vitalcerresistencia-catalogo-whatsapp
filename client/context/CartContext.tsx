@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useReducer, useEffect, useMemo } from 'react'
+import { createContext, useContext, useReducer, useEffect, useMemo, useState } from 'react'
 import { siteData } from '@/data/siteData'
 import { useStore } from '@/context/StoreContext'
 
@@ -79,6 +79,9 @@ function cartReducer(state, action) {
     case 'CLEAR_CART':
       return { ...state, items: [] }
 
+    case 'HYDRATE':
+      return { ...state, items: action.payload }
+
     default:
       return state
   }
@@ -86,15 +89,20 @@ function cartReducer(state, action) {
 
 export function CartProvider({ children }) {
   const { productsMap, loading } = useStore()
+  const [hydrated, setHydrated] = useState(false)
 
-  const [state, dispatch] = useReducer(cartReducer, undefined, () => {
+  const [state, dispatch] = useReducer(cartReducer, { items: [] })
+
+  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      return { items: stored ? JSON.parse(stored) : [] }
+      const items = stored ? JSON.parse(stored) : []
+      dispatch({ type: 'HYDRATE', payload: items })
     } catch {
-      return { items: [] }
+      // keep empty state
     }
-  })
+    setHydrated(true)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items))
@@ -182,9 +190,9 @@ export function CartProvider({ children }) {
   }
 
   const value = {
-    items: cartItems,
-    totalItems,
-    totalPrice,
+    items: hydrated ? cartItems : [],
+    totalItems: hydrated ? totalItems : 0,
+    totalPrice: hydrated ? totalPrice : 0,
     addItem,
     addServiceItem,
     removeItem,
