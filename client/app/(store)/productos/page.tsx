@@ -267,6 +267,10 @@ export default function Products() {
       .catch(() => setTags([]));
   }, [categoryId, selectedTagIds]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [page])
+
   // ── URL sync: solo después de hidratar desde URL ──
   useEffect(() => {
     if (!initializedFromUrl.current) return;
