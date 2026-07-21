@@ -71,7 +71,7 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   return (
     <Link
       ref={ref}
-      href="/productos"
+      href={`/productos?cat=${encodeURIComponent(cat.name)}`}
       className={`category-card relative rounded-2xl overflow-hidden ${isMobile && isInView ? "revealed" : ""}`}
       style={{
         border: "1px solid var(--color-border)",
