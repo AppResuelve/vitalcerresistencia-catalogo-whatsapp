@@ -20,36 +20,42 @@ import { useInView } from "@/hooks/useInView";
 const CATEGORIES = [
   {
     name: "Frutos Secos",
+    slug: "frutos-secos",
     icon: Leaf,
     description: "Nueces, almendras, avellanas y más",
     image: "/categorias/frutos-secos.jpeg",
   },
   {
     name: "Condimentos y Especies",
+    slug: "condimentos-y-especias",
     icon: Flame,
     description: "Especias, condimentos y sazonadores",
     image: "/categorias/condimentos-especies.jpeg",
   },
   {
     name: "Hierbas",
+    slug: "hierbas",
     icon: Sprout,
     description: "Hierbas medicinales y aromáticas",
     image: "/categorias/hierbas.jpeg",
   },
   {
     name: "Semillas y Legumbres",
+    slug: "semillas-y-legumbres",
     icon: Wheat,
     description: "Semillas, legumbres y granos variados",
     image: "/categorias/semillas-legumbres.jpeg",
   },
   {
     name: "Laboratorio",
+    slug: "laboratorio",
     icon: FlaskConical,
     description: "Vitaminas, minerales y suplementos",
     image: "/categorias/laboratorio.jpeg",
   },
   {
     name: "Kiosco",
+    slug: "kiosco",
     icon: Cookie,
     description: "Golosinas, bebidas y snacks saludables",
     image: "/categorias/kiosco.jpeg",
@@ -71,7 +77,7 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   return (
     <Link
       ref={ref}
-      href={`/productos?cat=${encodeURIComponent(cat.name)}`}
+      href={`/productos?cat=${cat.slug}`}
       className={`category-card relative rounded-2xl overflow-hidden ${isMobile && isInView ? "revealed" : ""}`}
       style={{
         border: "1px solid var(--color-border)",
