@@ -9,6 +9,7 @@ const {
   sequelize,
 } = require("../../models");
 const { Op } = require("sequelize");
+const { applyUnitPricing } = require("../../utils/unitPricing");
 
 const skuInclude = {
   model: ProductSku,
@@ -147,6 +148,8 @@ const list = async (query = {}) => {
     order: [["created_at", "DESC"]],
   });
 
+  products.forEach(applyUnitPricing);
+
   return {
     products,
     total,
@@ -167,6 +170,7 @@ const getBySlug = async (slug) => {
   if (!product) {
     throw Object.assign(new Error('Producto no encontrado'), { status: 404 });
   }
+  applyUnitPricing(product);
   return product;
 };
 

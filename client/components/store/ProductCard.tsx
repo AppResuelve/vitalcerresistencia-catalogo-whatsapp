@@ -1,4 +1,5 @@
 'use client'
+import { useMemo } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { useCart } from "@/context/CartContext";
@@ -11,12 +12,15 @@ export function ProductCard({ product }) {
   const hasDiscount = product.discountPercentage;
   const hasWholesale = product.wholesalePrice && product.wholesaleMinQty;
 
-  const getBadgeVariant = (tag) => {
-    if (tag === "nuevo") return "new";
-    if (tag === "oferta") return "sale";
-    if (tag === "bestseller") return "bestseller";
-    return "default";
-  };
+  const UNIT_LABEL = { kg: 'kg', m: 'm', l: 'l' };
+  const unitType = useMemo(() => {
+    for (const sku of (product.skus || [])) {
+      for (const av of (sku.attributeValues || [])) {
+        if (av.attribute?.unitType) return av.attribute.unitType;
+      }
+    }
+    return null;
+  }, [product]);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -57,7 +61,7 @@ export function ProductCard({ product }) {
 
           {/* Badge descuento */}
           {hasDiscount && (
-            <div className="absolute bottom-3 right-3">
+            <div className="absolute bottom-2 right-2">
               <span
                 className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold"
                 style={{
@@ -71,11 +75,11 @@ export function ProductCard({ product }) {
           )}
 
           {/* Tags */}
-          {product.tags.length > 0 && (
-            <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
-              {product.tags.map((tag) => (
-                <Badge key={tag} variant={getBadgeVariant(tag)}>
-                  {tag}
+          {product.tagValues?.length > 0 && (
+            <div className="absolute top-2 left-2 flex gap-1 flex-wrap max-w-[80%]">
+              {product.tagValues.map((tv) => (
+                <Badge key={tv.id} color={tv.tag?.color} className="text-[10px] px-2 py-0.5">
+                  {tv.value}
                 </Badge>
               ))}
             </div>
@@ -114,12 +118,12 @@ export function ProductCard({ product }) {
                   className="text-xs"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  x 1 u.
+                  {unitType ? `por ${UNIT_LABEL[unitType]}` : 'x 1 u.'}
                 </span>
               </div>
               {hasDiscount && (
                 <span
-                  className="text-sm line-through"
+                  className="text-xs line-through"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   {formatPrice(product.comparePrice)}

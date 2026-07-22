@@ -158,6 +158,12 @@ export default function Products() {
     },
     { header: 'Precio', accessor: (p) => formatPrice(p.retailPrice) },
     {
+      header: 'Variantes',
+      accessor: (p) => (
+        <span className="text-sm text-zinc-400">{p.skus?.length ?? 0}</span>
+      ),
+    },
+    {
       header: 'Estado',
       accessor: (p) => (
         <button

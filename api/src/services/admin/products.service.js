@@ -11,6 +11,7 @@ const {
 
 const { resolveDiscountFields } = require('../../utils/discount')
 const { generateSkuCode } = require('../../utils/skuGenerator')
+const { applyUnitPricing } = require('../../utils/unitPricing')
 
 const skuInclude = {
   model: ProductSku,
@@ -59,6 +60,8 @@ const list = async (query = {}) => {
     offset,
   });
 
+  rows.forEach(applyUnitPricing);
+
   return {
     products: rows,
     total: count,
@@ -82,6 +85,7 @@ const getById = async (id) => {
   if (!product) {
     throw Object.assign(new Error("Producto no encontrado"), { status: 404 });
   }
+  applyUnitPricing(product);
   return product;
 };
 
@@ -178,17 +182,6 @@ const create = async (data) => {
     if (skus && skus.length > 0) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
-      const activeSkus = skus.filter(s => s.status !== 'draft')
-      if (activeSkus.length > 0) {
-        const retailPrices = activeSkus.map(s => Number(s.retailPrice)).filter(p => p > 0)
-        if (retailPrices.length) product.retailPrice = Math.min(...retailPrices)
-        const wholesalePrices = activeSkus.filter(s => Number(s.wholesalePrice) > 0)
-        if (wholesalePrices.length) {
-          product.wholesalePrice = Math.min(...wholesalePrices.map(s => Number(s.wholesalePrice)))
-          product.wholesaleMinQty = Math.max(...wholesalePrices.map(s => Number(s.wholesaleMinQty) || 1))
-        }
-        await product.save({ transaction: t })
-      }
     } else {
       // Producto simple: crear/actualizar SKU base
       const [baseSku] = await ProductSku.findOrCreate({
@@ -252,17 +245,6 @@ const update = async (id, data) => {
     if (skus && Array.isArray(skus)) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
-      const activeSkus = skus.filter(s => s.status !== 'draft')
-      if (activeSkus.length > 0) {
-        const retailPrices = activeSkus.map(s => Number(s.retailPrice)).filter(p => p > 0)
-        if (retailPrices.length) product.retailPrice = Math.min(...retailPrices)
-        const wholesalePrices = activeSkus.filter(s => Number(s.wholesalePrice) > 0)
-        if (wholesalePrices.length) {
-          product.wholesalePrice = Math.min(...wholesalePrices.map(s => Number(s.wholesalePrice)))
-          product.wholesaleMinQty = Math.max(...wholesalePrices.map(s => Number(s.wholesaleMinQty) || 1))
-        }
-        await product.save({ transaction: t })
-      }
     } else {
       // Producto simple: crear/actualizar SKU base
       const [baseSku] = await ProductSku.findOrCreate({

@@ -122,7 +122,7 @@ export function CartDrawer({ open, onClose, onRequestOrder }) {
                       {item.name}
                     </p>
                     {item.variantLabel && (
-                      <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                         {item.variantLabel}
                       </p>
                     )}

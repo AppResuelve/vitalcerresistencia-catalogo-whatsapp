@@ -15,7 +15,7 @@ export default function Attributes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ name: "", values: [] });
+  const [form, setForm] = useState({ name: "", unit_type: null, values: [] });
 
   const load = () => {
     setLoading(true);
@@ -24,11 +24,11 @@ export default function Attributes() {
 
   useEffect(() => { load(); }, []);
 
-  const openNew = () => { setEditingId("new"); setForm({ name: "", values: [] }); setIsDirty(false) };
+  const openNew = () => { setEditingId("new"); setForm({ name: "", unit_type: null, values: [] }); setIsDirty(false) };
   const openEdit = (attr) => {
     setEditingId(attr.id);
     setIsDirty(false)
-    setForm({ name: attr.name || "", values: (attr.values || []).map((v) => ({ id: v.id, value: v.value, sort_order: v.sortOrder || 0 })) });
+    setForm({ name: attr.name || "", unit_type: attr.unitType || null, values: (attr.values || []).map((v) => ({ id: v.id, value: v.value, sort_order: v.sortOrder || 0 })) });
   };
   const closeForm = async () => { if (await confirmLeave()) setEditingId(null) };
   const handleValueChange = (index, value) => { const next = [...form.values]; next[index] = { ...next[index], value }; setForm({ ...form, values: next }); setIsDirty(true) };
@@ -39,7 +39,7 @@ export default function Attributes() {
     if (!form.name.trim()) { Alert.fire({ message: "El nombre del atributo es obligatorio", type: "warning" }); return; }
     setSaving(true);
     try {
-      const payload = { name: form.name, sort_order: 0, values: form.values.map((v) => ({ ...(v.id && { id: v.id }), value: v.value, sort_order: v.sort_order || 0 })) };
+      const payload = { name: form.name, unit_type: form.unit_type, sort_order: 0, values: form.values.map((v) => ({ ...(v.id && { id: v.id }), value: v.value, sort_order: v.sort_order || 0 })) };
       if (editingId === "new") await api.post("/admin/attributes", payload);
       else await api.put(`/admin/attributes/${editingId}`, payload);
       Alert.fire({ message: editingId === "new" ? "Atributo creado" : "Atributo actualizado", type: "success" });
@@ -62,7 +62,7 @@ export default function Attributes() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">Atributos</h1>
-          <p className="text-sm text-zinc-500 mt-1">Gestioná tamaños, colores y otras variantes de productos y servicios</p>
+          <p className="text-sm text-zinc-500 mt-1">Gestioná tamaños, colores, cantidades y otras variantes de productos</p>
         </div>
         <Button onClick={openNew}><Plus className="w-4 h-4" /> Nuevo atributo</Button>
       </div>
@@ -72,9 +72,9 @@ export default function Attributes() {
           <div key={attr.id} className="rounded-xl border border-zinc-700 bg-zinc-900/50 overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-4">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-zinc-100">{attr.name}</h3>
+                <h3 className="font-semibold text-zinc-100">{attr.name} {attr.unitType && <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 ml-2">por {attr.unitType}</span>}</h3>
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(attr.values || []).map((v) => <span key={v.id} className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">{v.value}</span>)}
+                  {(attr.values || []).map((v) => <span key={v.id} className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">{v.value}{attr.unitType ? ` ${attr.unitType}` : ''}</span>)}
                 </div>
               </div>
               <Button variant="secondary" size="sm" onClick={() => openEdit(attr)}>Editar</Button>
@@ -95,20 +95,47 @@ export default function Attributes() {
           <div className="absolute inset-0 bg-black/60" onClick={closeForm} />
           <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-zinc-100">{editingId === "new" ? "Nuevo atributo" : "Editar atributo"}</h2>
-            <Input label="Nombre del atributo" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); setIsDirty(true) }} placeholder="Color, Tamaño, Material..." />
+            <Input label="Nombre del atributo" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); setIsDirty(true) }} placeholder="Color, Tamaño, Cantidad..." />
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-1.5">Tipo de unidad (opcional)</label>
+              <select
+                value={form.unit_type || ""}
+                onChange={(e) => { setForm({ ...form, unit_type: e.target.value || null }); setIsDirty(true) }}
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
+              >
+                <option value="">Ninguna (texto libre)</option>
+                <option value="kg">Kilogramo (kg)</option>
+                <option value="m">Metro (m)</option>
+                <option value="l">Litro (l)</option>
+              </select>
+              {form.unit_type && (
+                <p className="text-xs text-zinc-500 mt-1">Los valores deben ser números (ej: 100, 250, 500). Se usarán para calcular el precio proporcionalmente.</p>
+              )}
+            </div>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-zinc-400">Valores</span>
                 <button type="button" onClick={addValue} className="flex items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300"><Plus className="w-3 h-3" /> Agregar valor</button>
               </div>
               {form.values.length === 0 ? (
-                <p className="text-xs text-zinc-600 italic">Ej: Rojo, Azul, Verde...</p>
+                <p className="text-xs text-zinc-600 italic">{form.unit_type ? "Ej: 100, 250, 500, 1000..." : "Ej: Rojo, Azul, Verde..."}</p>
               ) : (
                 <div className="space-y-2">
                   {form.values.map((v, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <span className="text-xs text-zinc-600 w-5">{i + 1}</span>
-                      <input type="text" value={v.value} onChange={(e) => handleValueChange(i, e.target.value)} placeholder="Valor" className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500" />
+                      <input
+                        type={form.unit_type ? "number" : "text"}
+                        inputMode={form.unit_type ? "numeric" : "text"}
+                        min={form.unit_type ? "1" : undefined}
+                        value={v.value}
+                        onChange={(e) => handleValueChange(i, e.target.value)}
+                        placeholder={form.unit_type ? "Ej: 250" : "Valor"}
+                        className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
+                      />
+                      {form.unit_type && (
+                        <span className="text-xs text-zinc-500 shrink-0">{form.unit_type}</span>
+                      )}
                       <button onClick={() => removeValue(i)} className="p-1.5 text-zinc-600 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   ))}

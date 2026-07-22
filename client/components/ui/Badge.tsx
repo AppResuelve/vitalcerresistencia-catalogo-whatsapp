@@ -1,4 +1,4 @@
-export function Badge({ children, variant = 'default', className = '' }) {
+export function Badge({ children, variant = 'default', color, className = '' }) {
   const variants = {
     default: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20',
     new: 'bg-[var(--color-secondary)]/20 text-yellow-700 border-[var(--color-secondary)]/40',
@@ -6,9 +6,16 @@ export function Badge({ children, variant = 'default', className = '' }) {
     bestseller: 'bg-[var(--color-secondary)]/15 text-yellow-700 border-[var(--color-secondary)]/30',
   }
 
+  const colorStyle = color ? {
+    backgroundColor: `${color}15`,
+    color: color,
+    borderColor: `${color}30`,
+  } : {}
+
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${variants[variant]} ${className}`}
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${color ? '' : variants[variant]} ${className}`}
+      style={colorStyle}
     >
       {children}
     </span>

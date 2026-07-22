@@ -54,7 +54,7 @@ export function CartItem({ item }) {
             {item.name}
           </Link>
           {item.variantLabel && (
-            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+            <p className="text-sm font-semibold text-[var(--color-text-primary)] mt-0.5">
               {item.variantLabel}
             </p>
           )}

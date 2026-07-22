@@ -138,7 +138,11 @@ export function CartProvider({ children }) {
         if (sku) {
           unitPrice = Number(sku.retailPrice)
           if (sku.attributeValues?.length) {
-            variantLabel = sku.attributeValues.map(v => v.value).join(' / ')
+            const UNIT_LABEL = { kg: 'g', m: 'cm', l: 'ml' }
+            variantLabel = sku.attributeValues.map(v => {
+              const unit = v.attribute?.unitType
+              return unit ? `${v.value} ${UNIT_LABEL[unit] || unit}` : v.value
+            }).join(' / ')
           }
           if (sku.wholesalePrice && sku.wholesaleMinQty && item.quantity >= sku.wholesaleMinQty) {
             unitPrice = Number(sku.wholesalePrice)

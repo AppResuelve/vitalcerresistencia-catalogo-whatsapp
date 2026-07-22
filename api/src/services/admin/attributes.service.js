@@ -14,7 +14,7 @@ const list = async () => {
 }
 
 const create = async (data) => {
-  const attr = await Attribute.create({ name: data.name, sortOrder: data.sort_order || 0 })
+  const attr = await Attribute.create({ name: data.name, unitType: data.unit_type || null, sortOrder: data.sort_order || 0 })
   if (data.values && Array.isArray(data.values)) {
     for (const v of data.values) {
       await AttributeValue.create({ attributeId: attr.id, value: v.value, sortOrder: v.sort_order || 0 })
@@ -26,7 +26,7 @@ const create = async (data) => {
 const update = async (id, data) => {
   const attr = await Attribute.findByPk(id)
   if (!attr) throw Object.assign(new Error('Atributo no encontrado'), { status: 404 })
-  await attr.update({ name: data.name, sortOrder: data.sort_order || 0 })
+  await attr.update({ name: data.name, unitType: data.unit_type !== undefined ? data.unit_type : attr.unitType, sortOrder: data.sort_order || 0 })
   if (data.values && Array.isArray(data.values)) {
     const keepIds = []
     for (const v of data.values) {

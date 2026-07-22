@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Tag, Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { content } from "@/data/siteData";
 import { useRelatedProducts } from "@/hooks/useProducts";
 import { useCart } from "@/context/CartContext";
@@ -12,7 +12,6 @@ import { ProductGallery } from "@/components/store/ProductGallery";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/utils/formatPrice";
 import { ProductGrid } from "@/components/store/ProductGrid";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default function ProductDetailClient({ product }: { product: any }) {
   const router = useRouter();
@@ -28,13 +27,15 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
   const skus = useMemo(() => product?.skus || [], [product])
 
+  const UNIT_LABEL = { kg: 'kg', m: 'm', l: 'l' }
+
   const attributeGroups = useMemo(() => {
     const groups = {}
     skus.forEach(sku => {
       sku.attributeValues.forEach(av => {
         if (!av.attribute) return
         const aId = av.attribute.id
-        if (!groups[aId]) groups[aId] = { name: av.attribute.name, ids: [], valueMap: {} }
+        if (!groups[aId]) groups[aId] = { name: av.attribute.name, unitType: av.attribute.unitType || null, ids: [], valueMap: {} }
         if (!groups[aId].valueMap[av.id]) {
           groups[aId].ids.push(av.id)
           groups[aId].valueMap[av.id] = av.value
@@ -44,10 +45,13 @@ export default function ProductDetailClient({ product }: { product: any }) {
     return Object.entries(groups).map(([aId, g]) => ({
       attributeId: Number(aId),
       name: g.name,
+      unitType: g.unitType,
       ids: g.ids,
       valueMap: g.valueMap,
     }))
   }, [skus])
+
+  const unitGroup = useMemo(() => attributeGroups.find(g => g.unitType), [attributeGroups])
 
   const derivedSku = useMemo(() => {
     const selected = Object.values(selectedValues).filter(Boolean)
@@ -146,6 +150,15 @@ export default function ProductDetailClient({ product }: { product: any }) {
               </div>
             )}
 
+            {/* Tags */}
+            {product.tagValues?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {product.tagValues.map((tv) => (
+                  <Badge key={tv.id} color={tv.tag?.color}>{tv.value}</Badge>
+                ))}
+              </div>
+            )}
+
             {/* Nombre */}
             <h1
               style={{
@@ -208,7 +221,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                               color: selected ? "var(--color-primary)" : "var(--color-text-secondary)",
                             }}
                           >
-                            {group.valueMap[vId]}
+                            {group.unitType ? `${group.valueMap[vId]} ${UNIT_LABEL[group.unitType]}` : group.valueMap[vId]}
                           </button>
                         )
                       })}
@@ -220,6 +233,11 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
             {/* Precio minorista */}
             <div className="mb-1">
+              {unitGroup && (
+                <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
+                  Precio por {UNIT_LABEL[unitGroup.unitType]}: {formatPrice(product.retailPrice)}
+                </p>
+              )}
               <div className="flex items-center gap-2">
                 <span
                   style={{
@@ -234,7 +252,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   className="text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  x 1 u.
+                  {unitGroup ? selectedValues[unitGroup.attributeId] ? `${unitGroup.valueMap[selectedValues[unitGroup.attributeId]]} ${UNIT_LABEL[unitGroup.unitType]}` : `x 1 ${UNIT_LABEL[unitGroup.unitType]}` : 'x 1 u.'}
                 </span>
               </div>
               {product.discountPercentage && product.comparePrice && (
@@ -279,24 +297,6 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   >
                     x 1 u.
                   </span>
-                </div>
-              </div>
-            )}
-
-            {/* Tags */}
-            {product.tags.length > 0 && (
-              <div className="mb-6">
-                <p
-                  className="text-xs font-medium flex items-center gap-1.5 mb-3"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  {content.productDetail.tagsLabel}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
-                    <Badge key={tag}>{tag}</Badge>
-                  ))}
                 </div>
               </div>
             )}
