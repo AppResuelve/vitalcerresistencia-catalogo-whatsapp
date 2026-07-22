@@ -141,9 +141,6 @@ export default function Cart() {
     return encodeURIComponent(message);
   };
 
-  const productItems = items.filter(i => i.type !== 'service')
-  const serviceItems = items.filter(i => i.type === 'service')
-
   const handleRequest = () => {
     const message = generateWhatsAppMessage();
     requestOrder(message);
@@ -223,20 +220,7 @@ export default function Cart() {
           <div className="grid lg:grid-cols-3 gap-10">
             {/* ── Items ── */}
             <div className="lg:col-span-2 space-y-6">
-              {productItems.length > 0 && (
-                <>
-                  <h3 className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--color-text-muted)" }}>Productos</h3>
-                  <div className="border-t border-[var(--color-border)]" />
-                  {productItems.map((item) => <CartItem key={item.id} item={item} />)}
-                </>
-              )}
-              {serviceItems.length > 0 && (
-                <>
-                  <h3 className="text-xs font-bold tracking-widest uppercase mt-2" style={{ color: "var(--color-text-muted)" }}>Servicios</h3>
-                  <div className="border-t border-[var(--color-border)]" />
-                  {serviceItems.map((item) => <CartItem key={item.id} item={item} />)}
-                </>
-              )}
+              {items.map((item) => <CartItem key={item.id} item={item} />)}
               <Link
                 href="/productos"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors group mt-2"
