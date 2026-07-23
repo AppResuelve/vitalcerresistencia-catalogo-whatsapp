@@ -3,9 +3,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Menu, X, ShoppingCart, ChevronDown } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useStore } from "@/context/StoreContext";
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
@@ -19,6 +20,19 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
   const location = usePathname();
   const closeTimer = useRef(null);
   const { totalItems } = useCart();
+  const { categories } = useStore();
+  const searchParams = useSearchParams();
+  const currentCat = searchParams?.get("cat") || null;
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const [desktopProductsOpen, setDesktopProductsOpen] = useState(false);
+
+  const handleProductsEnter = () => {
+    clearTimeout(closeTimer.current);
+    setDesktopProductsOpen(true);
+  };
+  const handleProductsLeave = () => {
+    closeTimer.current = setTimeout(() => setDesktopProductsOpen(false), 200);
+  };
 
   const isTransparent = heroMode && !scrolled;
   const isActive = (path) => location === path;
@@ -123,18 +137,64 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
 
             {/* Links desktop */}
             <div className="hidden md:flex items-center gap-1">
-              {NAV_LINKS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors duration-300"
-                  style={{
-                    color: isActive(item.href) ? textColorActive : textColor,
-                  }}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV_LINKS.map((item) => {
+                const isProducts = item.href === "/productos";
+                const hasCategories = isProducts && categories.length > 0;
+
+                return (
+                  <div
+                    key={item.href}
+                    className="relative"
+                    onMouseEnter={hasCategories ? handleProductsEnter : undefined}
+                    onMouseLeave={hasCategories ? handleProductsLeave : undefined}
+                  >
+                    <Link
+                      href={item.href}
+                      className="relative inline-flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-300 group"
+                      style={{ color: isActive(item.href) ? textColorActive : textColor }}
+                    >
+                      {item.label}
+                      {hasCategories && (
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${desktopProductsOpen ? "rotate-180" : ""}`} />
+                      )}
+                    </Link>
+                    {hasCategories && (
+                      <div
+                        className="absolute top-full left-0 mt-2 w-48 py-2 rounded-xl z-50"
+                        style={{
+                          opacity: desktopProductsOpen ? 1 : 0,
+                          transform: desktopProductsOpen ? "translateY(0)" : "translateY(-6px)",
+                          pointerEvents: desktopProductsOpen ? "auto" : "none",
+                          transition: "opacity 0.15s ease, transform 0.15s ease",
+                          backgroundColor: "var(--color-surface)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        <Link
+                          href="/productos"
+                          className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--color-primary-light)]"
+                          style={{ color: !currentCat ? "var(--color-primary)" : "var(--color-text-secondary)" }}
+                        >
+                          Todo
+                        </Link>
+                        {categories.map((cat) => {
+                          const isCurrentCat = currentCat === cat.slug || currentCat === cat.name;
+                          return (
+                            <Link
+                              key={cat.id}
+                              href={`/productos?cat=${encodeURIComponent(cat.slug || cat.name)}`}
+                              className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--color-primary-light)]"
+                              style={{ color: isCurrentCat ? "var(--color-primary)" : "var(--color-text-secondary)" }}
+                            >
+                              {cat.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Cart + hamburger */}
@@ -211,32 +271,89 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
 
         <nav className="flex-1 overflow-y-auto px-4 py-6">
           <ul className="space-y-1">
-            {NAV_LINKS.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    color: isActive(item.href)
-                      ? "var(--color-primary)"
-                      : "var(--color-text-secondary)",
-                    backgroundColor: isActive(item.href)
-                      ? "var(--color-primary-light)"
-                      : "transparent",
-                  }}
-                >
-                  <span
-                    className="w-1 h-1 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: isActive(item.href)
-                        ? "var(--color-primary)"
-                        : "var(--color-border)",
-                    }}
-                  />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {NAV_LINKS.map((item) => {
+              const isProducts = item.href === "/productos";
+              const hasSubitems = isProducts && categories.length > 0;
+
+              return (
+                <li key={item.href}>
+                  {hasSubitems ? (
+                    <div>
+                      <button
+                        onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
+                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors"
+                        style={{
+                          color: isActive(item.href) ? "var(--color-primary)" : "var(--color-text-secondary)",
+                        }}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span
+                            className="w-1 h-1 rounded-full shrink-0"
+                            style={{
+                              backgroundColor: isActive(item.href) ? "var(--color-primary)" : "var(--color-border)",
+                            }}
+                          />
+                          {item.label}
+                        </span>
+                        <ChevronDown
+                          className="w-4 h-4 transition-transform"
+                          style={{ transform: mobileProductsOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                        />
+                      </button>
+                      {mobileProductsOpen && (
+                        <div className="ml-6 mt-1 space-y-0.5">
+                          <Link
+                            href="/productos"
+                            onClick={() => setIsOpen(false)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors"
+                            style={{
+                              color: !currentCat && isActive(item.href) ? "var(--color-primary)" : "var(--color-text-secondary)",
+                            }}
+                          >
+                            Todo
+                          </Link>
+                          {categories.map((cat) => {
+                            const isCurrentCat = currentCat === cat.slug || currentCat === cat.name;
+                            return (
+                              <Link
+                                key={cat.id}
+                                href={`/productos?cat=${encodeURIComponent(cat.slug || cat.name)}`}
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors"
+                                style={{
+                                  color: isCurrentCat ? "var(--color-primary)" : "var(--color-text-secondary)",
+                                  backgroundColor: isCurrentCat ? "var(--color-primary-light)" : "transparent",
+                                }}
+                              >
+                                {cat.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        color: isActive(item.href) ? "var(--color-primary)" : "var(--color-text-secondary)",
+                        backgroundColor: isActive(item.href) ? "var(--color-primary-light)" : "transparent",
+                      }}
+                    >
+                      <span
+                        className="w-1 h-1 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: isActive(item.href) ? "var(--color-primary)" : "var(--color-border)",
+                        }}
+                      />
+                      {item.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </aside>

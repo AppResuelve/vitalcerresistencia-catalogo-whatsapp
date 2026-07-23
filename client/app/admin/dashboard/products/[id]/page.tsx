@@ -602,6 +602,17 @@ export default function ProductForm() {
           </>
         )}
 
+        <div className="grid grid-cols-2 gap-4">
+          <DropdownSelect label="Estado" value={form.status}
+            onChange={(v) => handleChange('status', v)}
+            options={[{ value: 'active', label: 'Activo' }, { value: 'draft', label: 'Borrador' }]} />
+          <DropdownSelect label="Categoría" value={form.categoryId}
+            onChange={(v) => handleChange('categoryId', v)}
+            options={[{ value: '', label: 'Sin categoría' }, ...categories.map(c => ({ value: c.id, label: c.name }))]} />
+        </div>
+
+        <TagSelect tags={tags} selected={tagIds} onChange={setTagIds} />
+
         {/* ═══ VARIANTES ═══ */}
         <div className="border-t border-zinc-800 pt-6">
           <div className="flex items-center justify-between mb-4">

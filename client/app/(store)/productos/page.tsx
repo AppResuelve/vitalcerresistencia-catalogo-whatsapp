@@ -243,7 +243,7 @@ export default function Products() {
   const [openTags, setOpenTags] = useState(true);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [page, setPage] = useState(1);
-  const initializedFromUrl = useRef(false);
+  const prevCatRef = useRef(null);
   const { store, categories } = useStore();
 
   const { title, subtitle, noResults, clearFilters } = content.products;
@@ -271,34 +271,36 @@ export default function Products() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [page])
 
-  // ── URL sync: solo después de hidratar desde URL ──
+  // ── URL sync: write params when filters change ──
   useEffect(() => {
-    if (!initializedFromUrl.current) return;
     const sp = new URLSearchParams();
     if (selectedCategory !== "Todos") {
       const cat = categories.find((c) => String(c.id) === selectedCategory);
       if (cat) sp.set("cat", cat.name);
     }
     if (selectedTagIds.length > 0) sp.set("tags", selectedTagIds.join(","));
-    router.replace(
-      sp.toString() ? `?${sp.toString()}` : window.location.pathname,
-      { scroll: false },
-    );
-  }, [selectedCategory, selectedTagIds]);
+    const newUrl = sp.toString() ? `?${sp.toString()}` : window.location.pathname;
+    if (newUrl !== `${window.location.pathname}${window.location.search}`) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [selectedCategory, selectedTagIds, categories]);
 
-  // ── Read URL params on mount — una sola vez cuando categories cargó ──
+  // ── Read URL params: update category when ?cat= changes ──
   useEffect(() => {
-    if (initializedFromUrl.current || categories.length === 0) return;
+    if (categories.length === 0) return;
     const cat = searchParams?.get("cat") || "";
+    if (cat === prevCatRef.current) return;
+    prevCatRef.current = cat;
     if (cat) {
       const found = categories.find((c) => c.slug === cat || c.name === cat);
       if (found) setSelectedCategory(String(found.id));
+    } else {
+      setSelectedCategory("Todos");
     }
     const tagsParam = searchParams?.get("tags") || "";
     if (tagsParam) {
       setSelectedTagIds(tagsParam.split(",").map(Number).filter(Boolean));
     }
-    initializedFromUrl.current = true;
   }, [searchParams, categories]);
 
   const hasActiveFilters =
