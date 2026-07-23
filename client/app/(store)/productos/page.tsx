@@ -544,18 +544,11 @@ export default function Products() {
                       borderRadius: "2rem",
                       border: "1px solid var(--color-primary)",
                       color: "var(--color-primary)",
-                      backgroundColor: "transparent",
+                      backgroundColor: "var(--color-card)",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "var(--color-primary-light)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
                   >
                     <SlidersHorizontal className="w-4 h-4" />
-                    {!isSearchFocused && !searchQuery && <span>Filtros</span>}
+                    <span>Filtros</span>
                   </button>
                 </div>
               </div>
