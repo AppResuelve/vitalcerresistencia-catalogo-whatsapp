@@ -28,6 +28,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
   const skus = useMemo(() => product?.skus || [], [product])
 
   const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
+  const UNIT_BASE_LABEL = { kg: 'Kg', m: 'M', l: 'L' }
 
   const attributeGroups = useMemo(() => {
     const groups = {}
@@ -206,7 +207,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
               <div className="mb-4 space-y-4">
                 {attributeGroups.map(group => (
                   <div key={group.attributeId}>
-                    <p className="text-xs font-medium mb-2" style={{ color: "var(--color-text-muted)" }}>{group.name}</p>
+                    <p className="text-sm font-medium mb-2" style={{ color: "var(--color-text-muted)" }}>{group.name}</p>
                     <div className="flex flex-wrap gap-2">
                       {group.ids.map(vId => {
                         const selected = selectedValues[group.attributeId] === vId
@@ -214,7 +215,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                           <button
                             key={vId}
                             onClick={() => setSelectedValues(prev => ({ ...prev, [group.attributeId]: vId }))}
-                            className="text-xs px-3 py-1.5 rounded-full border transition-all"
+                            className="text-sm px-3 py-1.5 rounded-full border transition-all"
                             style={{
                               borderColor: selected ? "var(--color-primary)" : "var(--color-border)",
                               backgroundColor: selected ? "var(--color-primary-light)" : "transparent",
@@ -234,8 +235,8 @@ export default function ProductDetailClient({ product }: { product: any }) {
             {/* Precio minorista */}
             <div className="mb-1">
               {unitGroup && (
-                <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
-                  Precio por {UNIT_LABEL[unitGroup.unitType]}: {formatPrice(product.retailPrice)}
+                <p className="text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                  Precio por {UNIT_BASE_LABEL[unitGroup.unitType]}: {formatPrice(product.retailPrice)}
                 </p>
               )}
               <div className="flex items-center gap-2">
@@ -249,7 +250,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   {formatPrice(price)}
                 </span>
                 <span
-                  className="text-sm"
+                  className="text-base"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   {unitGroup ? selectedValues[unitGroup.attributeId] ? `${unitGroup.valueMap[selectedValues[unitGroup.attributeId]]} ${UNIT_LABEL[unitGroup.unitType]}` : `x 1 ${UNIT_LABEL[unitGroup.unitType]}` : 'x 1 u.'}
@@ -379,7 +380,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                 className="text-xs font-medium tracking-[0.2em] uppercase block mb-1"
                 style={{ color: "var(--color-primary)" }}
               >
-                También te puede gustar
+                Sugeridos para vos
               </span>
               <h2
                 style={{
@@ -388,7 +389,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   color: "var(--color-text-primary)",
                 }}
               >
-                {content.productDetail.relatedTitle}
+                {product.category?.name || 'También te puede gustar'}
               </h2>
             </div>
             <ProductGrid products={related} />

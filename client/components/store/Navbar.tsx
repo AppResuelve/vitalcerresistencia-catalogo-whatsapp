@@ -80,19 +80,18 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
       aria-label="Abrir carrito"
     >
       <ShoppingCart className="w-5 h-5" />
-      {totalItems > 0 && (
-        <span
-          className="absolute -top-1 -right-1 w-4.5 h-4.5 flex items-center justify-center rounded-full text-[10px] font-bold"
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "#ffffff",
-            minWidth: "18px",
-            height: "18px",
-          }}
-        >
-          {totalItems > 99 ? "99+" : totalItems}
-        </span>
-      )}
+      <span
+        className="absolute -top-1 -right-1 w-4.5 h-4.5 items-center justify-center rounded-full text-[10px] font-bold"
+        style={{
+          backgroundColor: "var(--color-primary)",
+          color: "#ffffff",
+          minWidth: "18px",
+          height: "18px",
+          display: totalItems > 0 ? 'flex' : 'none',
+        }}
+      >
+        {totalItems > 99 ? "99+" : totalItems}
+      </span>
     </button>
   );
 

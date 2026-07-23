@@ -13,6 +13,7 @@ export function ProductCard({ product }) {
   const hasWholesale = product.wholesalePrice && product.wholesaleMinQty;
 
   const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' };
+  const UNIT_BASE_LABEL = { kg: 'Kg', m: 'M', l: 'L' };
   const unitType = useMemo(() => {
     for (const sku of (product.skus || [])) {
       for (const av of (sku.attributeValues || [])) {
@@ -115,10 +116,10 @@ export function ProductCard({ product }) {
                   {formatPrice(product.retailPrice)}
                 </span>
                 <span
-                  className="text-xs"
+                  className="text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  {unitType ? `por ${UNIT_LABEL[unitType]}` : 'x 1 u.'}
+                  {unitType ? `por ${UNIT_BASE_LABEL[unitType]}` : 'x 1 u.'}
                 </span>
               </div>
               {hasDiscount && (
