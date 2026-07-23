@@ -4,7 +4,7 @@
  */
 const UNIT_DIVISOR = { kg: 1000, m: 100, l: 1000 }
 
-const UNIT_LABEL = { kg: 'kg', m: 'm', l: 'l' }
+const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
 
 /**
  * Recalcula el retailPrice de cada SKU de un producto según su unitType.

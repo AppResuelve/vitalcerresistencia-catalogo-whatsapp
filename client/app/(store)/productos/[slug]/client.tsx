@@ -27,7 +27,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
   const skus = useMemo(() => product?.skus || [], [product])
 
-  const UNIT_LABEL = { kg: 'kg', m: 'm', l: 'l' }
+  const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
 
   const attributeGroups = useMemo(() => {
     const groups = {}

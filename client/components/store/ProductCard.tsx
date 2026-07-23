@@ -12,7 +12,7 @@ export function ProductCard({ product }) {
   const hasDiscount = product.discountPercentage;
   const hasWholesale = product.wholesalePrice && product.wholesaleMinQty;
 
-  const UNIT_LABEL = { kg: 'kg', m: 'm', l: 'l' };
+  const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' };
   const unitType = useMemo(() => {
     for (const sku of (product.skus || [])) {
       for (const av of (sku.attributeValues || [])) {

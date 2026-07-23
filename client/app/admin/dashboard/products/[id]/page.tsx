@@ -18,6 +18,8 @@ import { calculateComparePrice } from '@/utils/discount'
 import { generateSkuCode } from '@/utils/skuGenerator'
 import { useUnsavedChanges } from '@/context/UnsavedChangesContext'
 import { useTags } from '@/hooks/admin-useTags'
+
+const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
 import { TagSelect } from '@/components/admin/TagSelect'
 
 const EMPTY_PRODUCT = {
@@ -45,7 +47,7 @@ function AttributeValueCard({ value, unitType, images, onRemove, onUpdateImages 
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded) } }}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/30 transition-colors text-left cursor-pointer">
         <span className={`text-zinc-500 text-xs transition-transform ${expanded ? 'rotate-90' : ''}`}>▶</span>
-        <span className="flex-1 text-sm font-medium text-zinc-200 truncate">{value}{unitType ? ` ${unitType}` : ''}</span>
+        <span className="flex-1 text-sm font-medium text-zinc-200 truncate">{value}{unitType ? ` ${UNIT_LABEL[unitType] || unitType}` : ''}</span>
         {images.length > 0 && (
           <span className="text-xs text-zinc-500 shrink-0">{images.length} {images.length === 1 ? 'imagen' : 'imágenes'}</span>
         )}
@@ -83,7 +85,7 @@ function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle })
       .map(vId => {
         for (const attr of attributes) {
           const val = attr.values.find(v => v.id === vId)
-          if (val) return attr.unitType ? `${val.value} ${attr.unitType}` : val.value
+          if (val) return attr.unitType ? `${val.value} ${UNIT_LABEL[attr.unitType] || attr.unitType}` : val.value
         }
         return vId
       })
@@ -728,7 +730,7 @@ export default function ProductForm() {
                                 <Plus className="w-3.5 h-3.5 text-zinc-500 group-hover:text-cyan-400 shrink-0 transition-colors" />
                                 <span className="text-sm font-medium text-zinc-200">{attr.name}</span>
                                 {attr.unitType && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">por {attr.unitType}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">por {UNIT_LABEL[attr.unitType] || attr.unitType}</span>
                                 )}
                                 {selected && (
                                   <span className="text-[10px] text-zinc-500 ml-auto shrink-0">{selected.size}/{attr.values.length}</span>
@@ -746,7 +748,7 @@ export default function ProductForm() {
                                       {isSelected
                                         ? <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                                         : <span className="w-3.5 h-3.5 rounded-full border border-zinc-600 shrink-0 group-hover:border-cyan-400 transition-colors" />}
-                                      <span className={`text-xs transition-colors ${isSelected ? 'text-zinc-500 line-through' : 'text-zinc-400 group-hover:text-zinc-200'}`}>{v.value}{attr.unitType ? ` ${attr.unitType}` : ''}</span>
+                                      <span className={`text-xs transition-colors ${isSelected ? 'text-zinc-500 line-through' : 'text-zinc-400 group-hover:text-zinc-200'}`}>{v.value}{attr.unitType ? ` ${UNIT_LABEL[attr.unitType] || attr.unitType}` : ''}</span>
                                     </button>
                                   )
                                 })

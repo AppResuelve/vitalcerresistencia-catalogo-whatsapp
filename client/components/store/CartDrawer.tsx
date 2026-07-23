@@ -4,21 +4,10 @@ import Link from 'next/link'
 import { X, ShoppingCart, Trash2 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { formatPrice } from '@/utils/formatPrice'
+import { generateWhatsAppOrderMessage } from '@/utils/whatsappMessage'
 
 export function CartDrawer({ open, onClose, onRequestOrder }) {
   const { items, totalItems, totalPrice, removeItem, clearCart } = useCart()
-
-  const generateWhatsAppMessage = () => {
-    const itemsList = items
-      .map(
-        (item) =>
-          `🌿 ${item.quantity}x ${item.name} — ${formatPrice(item.unitPrice)} c/u`,
-      )
-      .join('\n')
-    return encodeURIComponent(
-      `Hola, quiero encargar este pedido de Vitalcer:\n\n${itemsList}\n\n💰 *Total: $${totalPrice.toLocaleString('es-AR')}*`,
-    )
-  }
 
   return (
     <>
@@ -164,7 +153,7 @@ export function CartDrawer({ open, onClose, onRequestOrder }) {
             </div>
 
             <button
-              onClick={() => onRequestOrder(generateWhatsAppMessage())}
+              onClick={() => onRequestOrder(generateWhatsAppOrderMessage(items, totalPrice))}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-full font-medium text-sm text-white transition-all duration-200 hover:-translate-y-0.5 mb-2"
               style={{
                 backgroundColor: 'var(--color-primary)',

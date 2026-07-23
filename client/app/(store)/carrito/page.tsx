@@ -3,11 +3,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, ArrowLeft, Leaf } from "lucide-react";
 import { content, siteData } from "@/data/siteData";
-import { formatPrice } from "@/utils/formatPrice";
 import { useCart } from "@/context/CartContext";
 import { useOrder } from "@/context/OrderContext";
 import { CartItem } from "@/components/store/CartItem";
 import { ordersService } from "@/services/storeService";
+import { generateWhatsAppOrderMessage } from "@/utils/whatsappMessage";
 
 function ThinLine({ className = "", style = {} }) {
   return (
@@ -130,19 +130,8 @@ export default function Cart() {
       />
     );
 
-  const generateWhatsAppMessage = () => {
-    const itemsList = items
-      .map(
-        (item) =>
-          `🌿 ${item.quantity}x ${item.name} — ${formatPrice(item.unitPrice)} c/u`,
-      )
-      .join("\n");
-    const message = `Hola, quiero encargar este pedido de Vitalcer:\n\n${itemsList}\n\n💰 *Total: $${totalPrice.toLocaleString("es-AR")}*`;
-    return encodeURIComponent(message);
-  };
-
   const handleRequest = () => {
-    const message = generateWhatsAppMessage();
+    const message = generateWhatsAppOrderMessage(items, totalPrice);
     requestOrder(message);
     ordersService.create({
       items: items.map((i) => ({

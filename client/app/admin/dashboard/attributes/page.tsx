@@ -8,6 +8,8 @@ import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
 import { useAlert } from "@/components/admin/ui/AlertContext";
 import api from "@/services/admin-api";
 
+const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
+
 export default function Attributes() {
   const Alert = useAlert();
   const { setIsDirty, confirmLeave } = useUnsavedChanges();
@@ -72,9 +74,9 @@ export default function Attributes() {
           <div key={attr.id} className="rounded-xl border border-zinc-700 bg-zinc-900/50 overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-4">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-zinc-100">{attr.name} {attr.unitType && <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 ml-2">por {attr.unitType}</span>}</h3>
+                <h3 className="font-semibold text-zinc-100">{attr.name} {attr.unitType && <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 ml-2">por {UNIT_LABEL[attr.unitType] || attr.unitType}</span>}</h3>
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(attr.values || []).map((v) => <span key={v.id} className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">{v.value}{attr.unitType ? ` ${attr.unitType}` : ''}</span>)}
+                  {(attr.values || []).map((v) => <span key={v.id} className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">{v.value}{attr.unitType ? ` ${UNIT_LABEL[attr.unitType] || attr.unitType}` : ''}</span>)}
                 </div>
               </div>
               <Button variant="secondary" size="sm" onClick={() => openEdit(attr)}>Editar</Button>
@@ -104,9 +106,9 @@ export default function Attributes() {
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
               >
                 <option value="">Ninguna (texto libre)</option>
-                <option value="kg">Kilogramo (kg)</option>
-                <option value="m">Metro (m)</option>
-                <option value="l">Litro (l)</option>
+                <option value="kg">Gramo (Gr)</option>
+                <option value="m">Centímetro (Cm)</option>
+                <option value="l">Mililitro (Ml)</option>
               </select>
               {form.unit_type && (
                 <p className="text-xs text-zinc-500 mt-1">Los valores deben ser números (ej: 100, 250, 500). Se usarán para calcular el precio proporcionalmente.</p>
@@ -134,7 +136,7 @@ export default function Attributes() {
                         className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
                       />
                       {form.unit_type && (
-                        <span className="text-xs text-zinc-500 shrink-0">{form.unit_type}</span>
+                        <span className="text-xs text-zinc-500 shrink-0">{UNIT_LABEL[form.unit_type] || form.unit_type}</span>
                       )}
                       <button onClick={() => removeValue(i)} className="p-1.5 text-zinc-600 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>

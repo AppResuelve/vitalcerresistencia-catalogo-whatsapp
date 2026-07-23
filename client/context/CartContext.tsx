@@ -138,7 +138,7 @@ export function CartProvider({ children }) {
         if (sku) {
           unitPrice = Number(sku.retailPrice)
           if (sku.attributeValues?.length) {
-            const UNIT_LABEL = { kg: 'g', m: 'cm', l: 'ml' }
+            const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' }
             variantLabel = sku.attributeValues.map(v => {
               const unit = v.attribute?.unitType
               return unit ? `${v.value} ${UNIT_LABEL[unit] || unit}` : v.value
