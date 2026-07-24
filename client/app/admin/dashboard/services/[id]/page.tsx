@@ -383,7 +383,7 @@ export default function ServiceForm() {
         <ImageUpload images={form.images} onChange={(imgs) => handleChange('images', imgs)} max={2} folder="servicios" />
         <Input label="Nombre" value={form.name} onChange={(e) => handleChange('name', e.target.value)} required />
         <Input label="Slug" value={form.slug} onChange={(e) => { setSlugManual(true); handleChange('slug', slugify(e.target.value)) }} placeholder="nombre-del-servicio" required />
-        <Textarea label="Descripción" value={form.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descripción del servicio" />
+        <Textarea label="Descripción" value={form.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descripción del servicio" maxLength={1000} />
 
         <div className="grid grid-cols-2 gap-4">
           <Input label="Precio" type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)}

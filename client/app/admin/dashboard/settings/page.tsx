@@ -92,6 +92,7 @@ export default function Settings() {
                 label="Descripción"
                 value={settings.business_description}
                 onChange={(e) => handleChange('business_description', e.target.value)}
+                maxLength={1000}
               />
               <div className="max-w-2xl">
                 <div className="grid grid-cols-2 gap-4">

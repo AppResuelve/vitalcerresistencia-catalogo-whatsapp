@@ -1,4 +1,5 @@
 const servicesService = require('../../services/admin/services.service')
+const { validateService, validateServiceUpdate } = require('../../validations/service.schema')
 
 const list = async (req, res, next) => {
   try {
@@ -20,7 +21,8 @@ const getById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const service = await servicesService.create(req.body)
+    const data = validateService(req.body)
+    const service = await servicesService.create(data)
     res.status(201).json(service)
   } catch (err) {
     next(err)
@@ -29,7 +31,8 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const service = await servicesService.update(req.params.id, req.body)
+    const data = validateServiceUpdate(req.body)
+    const service = await servicesService.update(req.params.id, data)
     res.json(service)
   } catch (err) {
     next(err)

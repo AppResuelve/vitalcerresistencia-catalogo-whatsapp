@@ -570,7 +570,7 @@ export default function ProductForm() {
 
         <Input label="Nombre" value={form.name} onChange={(e) => handleChange('name', e.target.value)} required />
         <Input label="Slug" value={form.slug} onChange={(e) => { setSlugManual(true); handleChange('slug', slugify(e.target.value)) }} placeholder="nombre-del-producto" required />
-        <Textarea label="Descripción" value={form.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descripción del producto que verán tus clientes" />
+        <Textarea label="Descripción" value={form.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descripción del producto que verán tus clientes" maxLength={1000} />
 
         <div className="grid grid-cols-3 items-end gap-4">
           <Input label="Precio de venta" type="number" min="0"
