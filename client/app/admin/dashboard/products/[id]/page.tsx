@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 import { useState, useEffect, useMemo, Fragment } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Image, Trash2, Plus, Search, X, Check, SlidersHorizontal } from 'lucide-react'
 import { Button, Input, Textarea } from '@/components/admin/ui/Form'
@@ -165,7 +165,10 @@ function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle })
 
 export default function ProductForm() {
   const { id } = useParams()
+  const searchParams = useSearchParams()
+  const fromPage = searchParams?.get('fromPage')
   const isEditing = Boolean(id) && id !== "new"
+  const backToList = fromPage ? `/dashboard/products?page=${fromPage}` : '/dashboard/products'
   const router = useRouter()
   const Alert = useAlert()
   const { product, loading: productLoading } = useProduct(id)
@@ -540,7 +543,7 @@ export default function ProductForm() {
       else await api.post('/admin/products', payload)
       Alert.fire({ message: isEditing ? 'Producto actualizado' : 'Producto creado', type: 'success', duration: 1500 })
       setIsDirty(false)
-      router.push('/dashboard/products')
+      router.push(backToList)
     } catch (err) {
       Alert.fire({ message: err.response?.data?.error || 'Error al guardar producto', type: 'error' })
     } finally { setSaving(false) }
@@ -552,7 +555,7 @@ export default function ProductForm() {
 
   return (
     <div>
-      <button onClick={async () => { if (await confirmLeave()) router.push('/dashboard/products') }} className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">
+      <button onClick={async () => { if (await confirmLeave()) router.push(backToList) }} className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /><span className="text-sm">Volver a productos</span>
       </button>
 
@@ -652,7 +655,7 @@ export default function ProductForm() {
 
         <div className="fixed bottom-0 left-0 right-0 lg:static flex gap-3 justify-end px-4 pb-8 pt-4 lg:p-0 lg:pt-2 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 lg:border-0 lg:bg-transparent z-20">
           <Button type="button" variant="secondary" onClick={() => {
-            if (!isDirty) { router.push('/dashboard/products'); return }
+            if (!isDirty) { router.push(backToList); return }
             Alert.fire({
               title: '¿Salir sin guardar?',
               message: 'Tenés cambios sin guardar. Si salís, los cambios se perderán.',
@@ -661,7 +664,7 @@ export default function ProductForm() {
               showCancelButton: true,
               confirmButtonText: 'Salir',
               cancelButtonText: 'Cancelar',
-            }).then(result => { if (result.isConfirmed) router.push('/dashboard/products') })
+            }).then(result => { if (result.isConfirmed) router.push(backToList) })
           }}>Cancelar</Button>
           <Button type="submit" disabled={saving}>{saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear producto'}</Button>
         </div>
