@@ -3,17 +3,18 @@
 import { useState, useEffect } from 'react'
 import { productsService } from '@/services/storeService'
 
-export function useProducts(params = {}) {
+export function useProducts(params) {
   const [data, setData] = useState({ products: [], total: 0, page: 1, totalPages: 1 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!params) { setLoading(false); return }
     setLoading(true)
     productsService.list(params)
       .then(setData)
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [JSON.stringify(params)])
+  }, [params ? JSON.stringify(params) : '__skip__'])
 
   return { ...data, loading }
 }
