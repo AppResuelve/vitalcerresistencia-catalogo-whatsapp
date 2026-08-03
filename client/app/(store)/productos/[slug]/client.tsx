@@ -111,7 +111,14 @@ export default function ProductDetailClient({ product }: { product: any }) {
       <div className="max-w-7xl mx-auto">
         {/* ── Back link ── */}
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back()
+            } else {
+              const slug = product.category?.slug
+              router.push(slug ? `/productos?cat=${slug}` : '/productos')
+            }
+          }}
           className="inline-flex items-center gap-1.5 text-xs font-medium mb-10 group transition-colors"
           style={{ color: "var(--color-text-muted)" }}
           onMouseEnter={(e) =>
