@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
+import DOMPurify from "dompurify";
 import { content } from "@/data/siteData";
 import { useRelatedProducts } from "@/hooks/useProducts";
 import { useCart } from "@/context/CartContext";
@@ -311,16 +312,15 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
             {/* Descripción larga */}
             {product.description && (
-              <p
-                className="leading-relaxed mb-8"
+              <div
+                className="markdown mb-8"
                 style={{
                   color: "var(--color-text-secondary)",
                   fontSize: "0.9rem",
                   lineHeight: 1.8,
                 }}
-              >
-                {product.description}
-              </p>
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
+              />
             )}
 
             {/* Botón principal — pill verde */}

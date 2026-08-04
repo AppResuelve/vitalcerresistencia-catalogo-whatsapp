@@ -1,3 +1,7 @@
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, '').trim()
+}
+
 type ProductProps = {
   name: string
   description?: string
@@ -13,7 +17,7 @@ export function ProductJsonLd({ product }: { product: ProductProps }) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description,
+    description: product.description ? stripHtml(product.description) : undefined,
     image: product.images?.[0],
     sku: product.sku || product.slug,
     url: `${base}/productos/${product.slug}`,

@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, Fragment } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Image, Trash2, Plus, Search, X, Check, SlidersHorizontal } from 'lucide-react'
-import { Button, Input, Textarea } from '@/components/admin/ui/Form'
+import { Button, Input } from '@/components/admin/ui/Form'
+import TiptapEditor from '@/components/admin/ui/TiptapEditor'
 import { DropdownSelect } from '@/components/admin/ui/DropdownSelect'
 import { Checkbox } from '@/components/admin/ui/Checkbox'
 import ImageUpload from '@/components/admin/ImageUpload'
@@ -570,7 +571,7 @@ export default function ProductForm() {
 
         <Input label="Nombre" value={form.name} onChange={(e) => handleChange('name', e.target.value)} required />
         <Input label="Slug" value={form.slug} onChange={(e) => { setSlugManual(true); handleChange('slug', slugify(e.target.value)) }} placeholder="nombre-del-producto" required />
-        <Textarea label="Descripción" value={form.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descripción del producto que verán tus clientes" maxLength={1000} />
+        <TiptapEditor label="Descripción" value={form.description || ''} onChange={(val) => handleChange('description', val)} placeholder="Descripción del producto que verán tus clientes" maxLength={2000} />
 
         <div className="grid grid-cols-3 items-end gap-4">
           <Input label="Precio de venta" type="number" min="0"

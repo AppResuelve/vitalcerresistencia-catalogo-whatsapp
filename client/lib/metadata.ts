@@ -1,5 +1,9 @@
 const BASE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'https://vitalcerresistencia.com.ar'
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, '').trim()
+}
+
 export const baseMetadata = {
   title: {
     default: 'Vitalcer Resistencia — Natural Market',
@@ -14,7 +18,7 @@ export const baseMetadata = {
 }
 
 export function productMetadata(product: any) {
-  const desc = product?.description?.substring(0, 155)
+  const desc = stripHtml(product?.description || '').substring(0, 155)
   return {
     title: product?.name,
     description: desc,

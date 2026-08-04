@@ -3,7 +3,7 @@ const { z } = require('zod')
 const productSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
   slug: z.string().optional(),
-  description: z.string().max(1000, 'La descripción no puede superar los 1000 caracteres').optional(),
+  description: z.string().max(2000, 'La descripción no puede superar los 2000 caracteres').optional(),
   images: z.array(z.string()).optional(),
   retailPrice: z.coerce.number().min(0, 'El precio de venta debe ser mayor o igual a 0'),
   comparePrice: z.coerce.number().nullable().optional(),
@@ -34,7 +34,7 @@ const bulkProductSchema = z.array(z.object({
   name: z.string().min(1),
   slug: z.string().optional(),
   price: z.coerce.number().min(0),
-  description: z.string().max(1000, 'La descripción no puede superar los 1000 caracteres').optional(),
+  description: z.string().max(2000, 'La descripción no puede superar los 2000 caracteres').optional(),
   images: z.union([z.string(), z.array(z.string())]).optional(),
   retailPrice: z.coerce.number().optional(),
   comparePrice: z.coerce.number().nullable().optional(),
