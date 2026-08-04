@@ -241,8 +241,8 @@ export default function Products() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center">
+        <div className="relative flex-1 w-full md:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
@@ -252,18 +252,20 @@ export default function Products() {
             className="w-full pl-9 pr-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm placeholder-zinc-500 focus:outline-none focus:border-cyan-500"
           />
         </div>
-        <DropdownSelect
-          options={[{ value: '', label: 'Todas las categorías' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
-          value={categoryId}
-          onChange={(v) => { setCategoryId(v); setPage(1) }}
-          className="w-48"
-        />
-        <DropdownSelect
-          options={[{ value: '', label: 'Todas las etiquetas' }, ...tags.flatMap(t => t.values.map(v => ({ value: v.id, label: `${t.name}: ${v.value}` })))]}
-          value={tagId}
-          onChange={(v) => { setTagId(v); setPage(1) }}
-          className="w-48"
-        />
+        <div className="grid grid-cols-2 gap-3 md:flex md:gap-3">
+          <DropdownSelect
+            options={[{ value: '', label: 'Todas las categorías' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
+            value={categoryId}
+            onChange={(v) => { setCategoryId(v); setPage(1) }}
+            className="w-full md:w-48"
+          />
+          <DropdownSelect
+            options={[{ value: '', label: 'Todas las etiquetas' }, ...tags.flatMap(t => t.values.map(v => ({ value: v.id, label: `${t.name}: ${v.value}` })))]}
+            value={tagId}
+            onChange={(v) => { setTagId(v); setPage(1) }}
+            className="w-full md:w-48"
+          />
+        </div>
       </div>
 
       {/* Bulk actions */}
