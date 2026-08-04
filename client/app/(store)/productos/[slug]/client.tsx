@@ -112,7 +112,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
         {/* ── Back link ── */}
         <button
           onClick={() => {
-            if (window.history.length > 1) {
+            if (document.referrer && document.referrer.startsWith(window.location.origin)) {
               router.back()
             } else {
               const slug = product.category?.slug
