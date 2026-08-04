@@ -1,6 +1,7 @@
 'use client'
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingCart, ArrowLeft, Leaf } from "lucide-react";
 import { content, siteData } from "@/data/siteData";
 import { useCart } from "@/context/CartContext";
@@ -30,6 +31,7 @@ function LeafDeco({ className = "", style = {} }) {
 
 /* ── Estado vacío ─────────────────────────────────────────────────────── */
 function CartEmpty({ emptyTitle, emptyMessage, browseProducts }) {
+  const router = useRouter();
   return (
     <>
       <section
@@ -45,15 +47,18 @@ function CartEmpty({ emptyTitle, emptyMessage, browseProducts }) {
           style={{ opacity: 0.1 }}
         />
         <div className="relative max-w-7xl mx-auto">
-          <Link
-            href="/productos"
+          <button
+            onClick={() => {
+              if (window.history.length > 1) router.back()
+              else router.push('/productos')
+            }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold
               text-[var(--color-text-muted)] hover:text-[var(--color-primary)]
               transition-colors mb-5 group"
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             {content.productDetail.backTo}
-          </Link>
+          </button>
           <div>
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-[var(--color-primary)] mb-3">
               Carrito
@@ -120,6 +125,7 @@ export default function Cart() {
     total,
     requestQuote,
   } = content.cart;
+  const router = useRouter();
 
   if (items.length === 0)
     return (
@@ -165,15 +171,18 @@ export default function Cart() {
         />
 
         <div className="relative max-w-6xl mx-auto">
-          <Link
-            href="/productos"
+          <button
+            onClick={() => {
+              if (window.history.length > 1) router.back()
+              else router.push('/productos')
+            }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold
               text-[var(--color-text-muted)] hover:text-[var(--color-primary)]
               transition-colors mb-5 group"
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             {content.productDetail.backTo}
-          </Link>
+          </button>
 
           <div className="flex items-end justify-between gap-4">
             <div>
