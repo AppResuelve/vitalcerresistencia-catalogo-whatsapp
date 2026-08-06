@@ -56,32 +56,14 @@ export default function Store() {
     setSaving(false)
   }
 
-  const [storeUrl, setStoreUrl] = useState(typeof window !== 'undefined' ? window.location.origin : '')
-  const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    const host = window.location.host.replace(/^admin\./, '')
-    const protocol = window.location.protocol
-    setStoreUrl(`${protocol}//${host}`)
-  }, [])
+  const storeUrl = process.env.NEXT_PUBLIC_STORE_URL || '';
+  const [copied, setCopied] = useState(false);
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(storeUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  if (!storeUrl) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md">
-          <Globe className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No hay URL de tienda configurada</p>
-          <p className="text-sm text-zinc-600 mt-1">Configurá STORE_FRONTEND_URL en el backend</p>
-        </div>
-      </div>
-    )
-  }
+    navigator.clipboard.writeText(storeUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
