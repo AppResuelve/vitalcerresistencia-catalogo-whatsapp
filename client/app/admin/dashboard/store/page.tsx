@@ -56,7 +56,7 @@ export default function Store() {
     setSaving(false)
   }
 
-  const storeUrl = process.env.NEXT_PUBLIC_STORE_URL || '';
+  const storeUrl = process.env.NEXT_PUBLIC_STORE_URL;
   const [copied, setCopied] = useState(false);
 
   const handleCopyUrl = () => {
@@ -81,16 +81,18 @@ export default function Store() {
             {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
             URL
           </button>
-          <a
-            href={storeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm font-medium"
-          >
-            <span className="hidden sm:inline">Ver tienda</span>
-            <span className="sm:hidden">Ver</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          {storeUrl && (
+            <a
+              href={storeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm font-medium"
+            >
+              <span className="hidden sm:inline">Ver tienda</span>
+              <span className="sm:hidden">Ver</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       </div>
 
@@ -100,20 +102,22 @@ export default function Store() {
         className="relative rounded-xl overflow-hidden border border-zinc-800 mb-6 bg-zinc-950"
         style={{ height: Math.ceil(IFRAME_H * scale) }}
       >
-        <iframe
-          key={iframeKey}
-          src={storeUrl}
-          inert
-          className="pointer-events-none absolute top-0 left-0"
-          style={{
-            width: `${IFRAME_W}px`,
-            height: `${IFRAME_H}px`,
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-          }}
-          title="Vista previa de la tienda"
-          sandbox="allow-scripts allow-same-origin"
-        />
+        {storeUrl && (
+          <iframe
+            key={iframeKey}
+            src={storeUrl}
+            inert
+            className="pointer-events-none absolute top-0 left-0"
+            style={{
+              width: `${IFRAME_W}px`,
+              height: `${IFRAME_H}px`,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+            title="Vista previa de la tienda"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        )}
       </div>
 
       {/* Status controls */}

@@ -473,7 +473,7 @@ export default function ProductsClient({
                         className="flex items-center justify-between w-full text-left mb-3"
                       >
                         <h3 className="text-sm font-semibold text-[var(--color-text-primary)]" style={{ fontFamily: 'var(--font-body)' }}>
-                          Filtrar por
+                          Etiquetas
                         </h3>
                         <ChevronDown className={`w-4 h-4 text-[var(--color-text-secondary)] transition-transform ${openTags ? 'rotate-180' : ''}`} />
                       </button>
@@ -481,7 +481,6 @@ export default function ProductsClient({
                         <TagFilter
                           tags={tags}
                           selectedTagIds={selectedTagIds}
-                          selectionMode="single"
                           onToggleTag={handleToggleTag}
                         />
                       )}

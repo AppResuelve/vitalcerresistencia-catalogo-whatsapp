@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useMemo } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
@@ -12,11 +12,11 @@ export function ProductCard({ product }) {
   const hasDiscount = product.discountPercentage;
   const hasWholesale = product.wholesalePrice && product.wholesaleMinQty;
 
-  const UNIT_LABEL = { kg: 'Gr', m: 'Cm', l: 'Ml' };
-  const UNIT_BASE_LABEL = { kg: 'Kg', m: 'M', l: 'L' };
+  const UNIT_LABEL = { kg: "Gr", m: "Cm", l: "Ml" };
+  const UNIT_BASE_LABEL = { kg: "Kg", m: "M", l: "L" };
   const unitType = useMemo(() => {
-    for (const sku of (product.skus || [])) {
-      for (const av of (sku.attributeValues || [])) {
+    for (const sku of product.skus || []) {
+      for (const av of sku.attributeValues || []) {
         if (av.attribute?.unitType) return av.attribute.unitType;
       }
     }
@@ -77,9 +77,13 @@ export function ProductCard({ product }) {
 
           {/* Tags */}
           {product.tagValues?.length > 0 && (
-            <div className="absolute top-2 left-2 flex gap-1 flex-wrap max-w-[80%]">
+            <div className="absolute top-1 left-1 flex gap-1 flex-wrap max-w-[100%]">
               {product.tagValues.map((tv) => (
-                <Badge key={tv.id} color={tv.tag?.color} className="text-[10px] px-2 py-0.5">
+                <Badge
+                  key={tv.id}
+                  color={tv.tag?.color}
+                  className="text-sm px-2 py-0.5"
+                >
                   {tv.value}
                 </Badge>
               ))}
@@ -93,8 +97,8 @@ export function ProductCard({ product }) {
         <Link href={`/productos/${product.slug}`} className="block flex-1">
           <h3
             className="line-clamp-2 mb-0.5"
-              style={{
-                fontSize: "1rem",
+            style={{
+              fontSize: "1rem",
               fontWeight: 500,
               lineHeight: 1.3,
               color: "var(--color-text-primary)",
@@ -119,7 +123,7 @@ export function ProductCard({ product }) {
                   className="text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  {unitType ? `por ${UNIT_BASE_LABEL[unitType]}` : 'x 1 u.'}
+                  {unitType ? `por ${UNIT_BASE_LABEL[unitType]}` : "x 1 u."}
                 </span>
               </div>
               {hasDiscount && (
