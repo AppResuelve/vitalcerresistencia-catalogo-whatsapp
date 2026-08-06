@@ -59,4 +59,17 @@ const bulkCreate = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, update, remove, bulkCreate }
+const toggleStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body
+    if (!['active', 'draft'].includes(status)) {
+      return res.status(400).json({ error: 'Status inválido' })
+    }
+    const product = await productsService.toggleStatus(req.params.id, status)
+    res.json(product)
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { list, getById, create, update, remove, bulkCreate, toggleStatus }

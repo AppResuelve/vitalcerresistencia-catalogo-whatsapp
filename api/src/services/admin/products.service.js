@@ -278,6 +278,13 @@ const remove = async (id) => {
   return product.destroy();
 };
 
+const toggleStatus = async (id, status) => {
+  const product = await Product.findByPk(id);
+  if (!product) throw Object.assign(new Error('Producto no encontrado'), { status: 404 });
+  await product.update({ status });
+  return product;
+};
+
 const CHUNK = 150;
 
 const bulkCreate = async (products, categoryId) => {
@@ -417,4 +424,4 @@ const bulkCreate = async (products, categoryId) => {
   return { created: createdCount, warnings, createdAttributes }
 };
 
-module.exports = { list, getById, create, update, remove, bulkCreate };
+module.exports = { list, getById, create, update, remove, toggleStatus, bulkCreate };

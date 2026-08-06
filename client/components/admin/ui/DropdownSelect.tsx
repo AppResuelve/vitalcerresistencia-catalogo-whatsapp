@@ -39,7 +39,7 @@ export function DropdownSelect({
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const selected = options.find(o => o.value === value)
+  const selected = options.find(o => String(o.value) === String(value))
 
   return (
     <div className={className} ref={containerRef}>
@@ -80,7 +80,7 @@ export function DropdownSelect({
                   type="button"
                   onClick={() => { onChange(opt.value); setOpen(false) }}
                   className={`w-full text-left px-3 py-2 text-sm transition-colors
-                    ${opt.value === value
+                    ${String(opt.value) === String(value)
                       ? 'bg-cyan-500/10 text-cyan-400'
                       : 'text-zinc-300 hover:bg-zinc-700'
                     }

@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Plus, Search, Edit, Trash2, FileSpreadsheet, MoreHorizontal } from 'lucide-react'
@@ -22,8 +22,8 @@ export default function Products() {
   const searchParams = useSearchParams()
   const Alert = useAlert()
   const [search, setSearch] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [tagId, setTagId] = useState('')
+  const [categoryId, setCategoryId] = useState(() => searchParams?.get('categoryId') || '')
+  const [tagId, setTagId] = useState(() => searchParams?.get('tagId') || '')
   const [page, setPage] = useState(() => Number(searchParams?.get('page')) || 1)
   const [bulkOpen, setBulkOpen] = useState(false)
   const [toggling, setToggling] = useState(null)
@@ -37,12 +37,22 @@ export default function Products() {
   const { categories } = useCategories()
   const { tags } = useTags()
 
+  useEffect(() => {
+    const sp = new URLSearchParams(searchParams?.toString() || '')
+    sp.set('page', String(page))
+    if (categoryId) sp.set('categoryId', categoryId)
+    else sp.delete('categoryId')
+    if (tagId) sp.set('tagId', tagId)
+    else sp.delete('tagId')
+    router.replace(`/dashboard/products?${sp.toString()}`)
+  }, [page, categoryId, tagId])
+
   const handleToggleStatus = async (e, product) => {
     e.stopPropagation()
     const newStatus = product.status === 'active' ? 'draft' : 'active'
     setToggling(product.id)
     try {
-      await api.put(`/admin/products/${product.id}`, { status: newStatus })
+      await api.patch(`/admin/products/${product.id}/status`, { status: newStatus })
       updateProduct(product.id, { status: newStatus })
     } catch (err) {
       Alert.fire({ message: 'Error al cambiar estado', type: 'error' })
@@ -66,7 +76,7 @@ export default function Products() {
     setBulkProcessing(true)
     try {
       for (const id of selected) {
-        await api.put(`/admin/products/${id}`, { status })
+        await api.patch(`/admin/products/${id}/status`, { status })
         updateProduct(id, { status })
       }
       Alert.fire({ message: `${selected.length} producto(s) ${status === 'active' ? 'activados' : 'pasados a borrador'}`, type: 'success' })
@@ -118,6 +128,14 @@ export default function Products() {
     if (!result.isConfirmed) return
     await api.delete(`/admin/products/${product.id}`)
     refetch()
+  }
+
+  const buildProductUrl = (productId) => {
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    if (categoryId) params.set('categoryId', categoryId)
+    if (tagId) params.set('tagId', tagId)
+    return `/dashboard/products/${productId}?${params.toString()}`
   }
 
   const columns = [
@@ -189,7 +207,7 @@ export default function Products() {
       header: 'Acciones',
       accessor: (p) => (
         <div className="flex items-center gap-1">
-          <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/products/${p.id}?fromPage=${page}`) }} className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); router.push(buildProductUrl(p.id)) }} className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors">
             <Edit className="w-4 h-4" />
           </button>
           <button onClick={(e) => { e.stopPropagation(); handleDelete(p) }} className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
@@ -309,7 +327,7 @@ export default function Products() {
       <Table
         columns={columns}
         data={products}
-        onRowClick={(p) => router.push(`/dashboard/products/${p.id}?fromPage=${page}`)}
+        onRowClick={(p) => router.push(buildProductUrl(p.id))}
         emptyMessage="No hay productos"
         selectable
         selected={selected}
