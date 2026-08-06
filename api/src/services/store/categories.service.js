@@ -2,6 +2,7 @@ const { Category } = require('../../models')
 
 const list = async () => {
   return Category.findAll({
+    where: { status: 'active' },
     order: [['order', 'ASC'], ['name', 'ASC']],
   })
 }

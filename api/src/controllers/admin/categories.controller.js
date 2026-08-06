@@ -54,4 +54,17 @@ const reorder = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, update, remove, reorder }
+const toggleStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body
+    if (!['active', 'draft'].includes(status)) {
+      return res.status(400).json({ error: 'Status inválido' })
+    }
+    const category = await categoriesService.toggleStatus(req.params.id, status)
+    res.json(category)
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { list, getById, create, update, remove, reorder, toggleStatus }

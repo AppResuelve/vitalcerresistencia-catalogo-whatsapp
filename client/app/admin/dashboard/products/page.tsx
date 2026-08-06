@@ -188,7 +188,7 @@ export default function Products() {
         <button
           onClick={(e) => handleToggleStatus(e, p)}
           disabled={toggling === p.id}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer min-w-[90px] justify-center
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer w-[96px] justify-center shrink-0
             ${p.status === 'active'
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20'

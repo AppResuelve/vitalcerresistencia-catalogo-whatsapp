@@ -64,6 +64,15 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL',
     },
+    unitType: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this._unitType || null
+      },
+      set(val) {
+        this._unitType = val
+      },
+    },
   }, {
     tableName: 'products',
   })

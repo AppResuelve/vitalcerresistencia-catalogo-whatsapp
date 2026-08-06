@@ -19,6 +19,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.ENUM('active', 'draft'),
+      allowNull: false,
+      defaultValue: 'active',
+    },
   }, {
     tableName: 'categories',
   })

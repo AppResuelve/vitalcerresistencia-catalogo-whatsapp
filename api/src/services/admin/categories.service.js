@@ -63,4 +63,10 @@ const reorder = async (orderedIds) => {
   return list()
 }
 
-module.exports = { list, getById, create, update, remove, reorder }
+const toggleStatus = async (id, status) => {
+  const category = await getById(id)
+  await category.update({ status })
+  return category
+}
+
+module.exports = { list, getById, create, update, remove, reorder, toggleStatus }

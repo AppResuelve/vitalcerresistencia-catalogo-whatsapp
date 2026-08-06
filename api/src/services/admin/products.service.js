@@ -89,6 +89,24 @@ const getById = async (id) => {
   return product;
 };
 
+const applySyncPrices = (product, skus) => {
+  const activeSkus = skus.filter(s => s.status !== 'draft')
+  if (activeSkus.length === 0) return
+  const retailPrices = activeSkus.map(s => Number(s.retailPrice)).filter(p => p > 0)
+  if (retailPrices.length) product.retailPrice = Math.min(...retailPrices)
+  const wholesalePrices = activeSkus.filter(s => Number(s.wholesalePrice) > 0)
+  if (wholesalePrices.length) {
+    product.wholesalePrice = Math.min(...wholesalePrices.map(s => Number(s.wholesalePrice)))
+    product.wholesaleMinQty = Math.max(...wholesalePrices.map(s => Number(s.wholesaleMinQty) || 1))
+  }
+}
+
+const productHasUnitType = (product) => {
+  return (product.skus || []).some(sku =>
+    (sku.attributeValues || []).some(av => av.attribute?.unitType)
+  )
+}
+
 const slugify = (text) => {
   return text
     .toLowerCase()
@@ -182,6 +200,20 @@ const create = async (data) => {
     if (skus && skus.length > 0) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
+      const allAttrIds = skus.flatMap(s => s.attributeValueIds || []).filter(Boolean)
+      let hasUnitType = false
+      if (allAttrIds.length > 0) {
+        const vals = await AttributeValue.findAll({
+          where: { id: allAttrIds },
+          include: [{ model: Attribute, as: 'attribute', attributes: ['unitType'] }],
+          transaction: t
+        })
+        hasUnitType = vals.some(v => v.attribute?.unitType)
+      }
+      if (!hasUnitType) {
+        applySyncPrices(product, skus)
+        await product.save({ transaction: t })
+      }
     } else {
       // Producto simple: crear/actualizar SKU base
       const [baseSku] = await ProductSku.findOrCreate({
@@ -245,6 +277,10 @@ const update = async (id, data) => {
     if (skus && Array.isArray(skus)) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
+      if (!productHasUnitType(product)) {
+        applySyncPrices(product, skus)
+        await product.save({ transaction: t })
+      }
     } else {
       // Producto simple: crear/actualizar SKU base
       const [baseSku] = await ProductSku.findOrCreate({

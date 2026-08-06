@@ -28,6 +28,8 @@ function applyUnitPricing(product) {
 
   if (!unitAttr) return
 
+  product.unitType = unitAttr.unitType
+
   const divisor = UNIT_DIVISOR[unitAttr.unitType]
   if (!divisor) return
 

@@ -72,9 +72,10 @@ function AttributeValueCard({ value, unitType, images, onRemove, onUpdateImages 
   )
 }
 
-function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle }) {
+function SkuCard({ sku, index, attributes, unitType, onChange, onRemove, onStatusToggle }) {
   const [expanded, setExpanded] = useState(false)
   const Alert = useAlert()
+  const unitName = unitType ? (UNIT_LABEL[unitType] || unitType) : null
 
   const label = useMemo(() => {
     if (!sku.attributeValueIds?.length) return `Variante ${index + 1}`
@@ -93,25 +94,19 @@ function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle })
       .join(' + ')
   }, [sku.attributeValueIds, attributes, index])
 
-  const hasUnitType = useMemo(() => {
-    return sku.attributeValueIds?.some(vId =>
-      attributes.find(a => a.values.some(v => v.id === vId))?.unitType
-    )
-  }, [sku.attributeValueIds, attributes])
-
   const handleChange = (field, value) => {
     onChange(index, { ...sku, [field]: value })
   }
 
   return (
-    <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 overflow-hidden">
+    <div className="rounded-xl border border-zinc-700 bg-zinc-900/50">
       <div role="button" tabIndex={0} onClick={() => setExpanded(!expanded)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded) } }}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/30 transition-colors text-left cursor-pointer">
         <span className={`text-zinc-500 text-xs transition-transform ${expanded ? 'rotate-90' : ''}`}>▶</span>
         <span className="flex-1 text-sm font-medium text-zinc-200 truncate">{label}</span>
         <span className="text-xs text-zinc-500 font-mono shrink-0">${sku.retailPrice || 0}</span>
-        {hasUnitType && <span className="text-[10px] text-zinc-600 shrink-0">(calculado)</span>}
+        {!!unitType && <span className="text-[10px] text-zinc-600 shrink-0">(calculado)</span>}
         <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${sku.status === 'active' ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-500'}`}>
           {sku.status === 'active' ? 'activo' : 'borrador'}
         </span>
@@ -127,8 +122,8 @@ function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle })
       {expanded && (
         <div className="px-4 pb-4 border-t border-zinc-700 pt-3 space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <Input label={hasUnitType ? "Precio por unidad (base)" : "Precio venta"} type="number" value={sku.retailPrice}
-              readOnly={hasUnitType} disabled={hasUnitType}
+            <Input label={!!unitType ? `Precio venta x ${unitName}` : "Precio venta"} type="number" value={sku.retailPrice}
+              readOnly={!!unitType} disabled={!!unitType}
               onChange={(e) => handleChange('retailPrice', e.target.value)} />
             <Input label="Stock" type="number" value={sku.stock}
               onChange={(e) => handleChange('stock', e.target.value)} />
@@ -141,7 +136,7 @@ function SkuCard({ sku, index, attributes, onChange, onRemove, onStatusToggle })
             <Input label="Código SKU" value={sku.sku || ''}
               onChange={(e) => handleChange('sku', e.target.value)} placeholder="Opcional" />
           </div>
-          {hasUnitType ? (
+          {!!unitType ? (
             <div>
               <DropdownSelect label="Estado" value={sku.status}
                 onChange={(v) => handleChange('status', v)}
@@ -614,6 +609,33 @@ export default function ProductForm() {
           </>
         )}
 
+        {skus.length > 0 && product?.unitType ? (
+          <div className="p-3 rounded-lg flex items-start gap-3"
+            style={{ backgroundColor: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)' }}>
+            <span className="text-sm shrink-0 mt-0.5">ℹ️</span>
+            <div>
+              <p className="text-xs font-medium text-cyan-400">Precios calculados por unidad</p>
+              <p className="text-xs text-cyan-400/60 mt-0.5">
+                Los precios de las variantes de este producto se calculan según el valor ({UNIT_LABEL[product.unitType] || product.unitType}). El precio base se usa como precio total de unidad.
+              </p>
+            </div>
+          </div>
+        ) : skus.length > 0 ? (() => {
+          const minPrice = Math.min(...skus.map(s => Number(s.retailPrice)).filter(p => p > 0))
+          return (
+            <div className="p-3 rounded-lg flex items-start gap-3"
+              style={{ backgroundColor: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)' }}>
+              <span className="text-sm shrink-0 mt-0.5">⚠️</span>
+              <div>
+                <p className="text-xs font-medium text-amber-400">Precio base sincronizado con variantes</p>
+                <p className="text-xs text-amber-400/60 mt-0.5">
+                  En el catálogo de productos se muestra el precio de la variante más económica. Actual: ${minPrice || 0}
+                </p>
+              </div>
+            </div>
+          )
+        })() : null}
+
         <div className="grid grid-cols-2 gap-4">
           <DropdownSelect label="Estado" value={form.status}
             onChange={(v) => handleChange('status', v)}
@@ -654,7 +676,7 @@ export default function ProductForm() {
           </div>
           <div className="space-y-2">
             {skus.map((sku, i) => (
-              <SkuCard key={i} sku={sku} index={i} attributes={attributes}
+              <SkuCard key={i} sku={sku} index={i} attributes={attributes} unitType={product?.unitType}
                 onChange={updateSku} onRemove={removeSku} />
             ))}
           </div>

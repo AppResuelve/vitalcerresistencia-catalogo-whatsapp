@@ -27,6 +27,7 @@ export default function Categories() {
   const [slug, setSlug] = useState('')
   const [slugManual, setSlugManual] = useState(false)
   const [ordered, setOrdered] = useState([])
+  const [toggling, setToggling] = useState(null)
   const dragItem = useRef(null)
   const dragOverItem = useRef(null)
 
@@ -151,6 +152,19 @@ export default function Categories() {
     refetch()
   }
 
+  const handleToggleStatus = async (cat) => {
+    const newStatus = cat.status === 'active' ? 'draft' : 'active'
+    setToggling(cat.id)
+    try {
+      await api.patch(`/admin/categories/${cat.id}/status`, { status: newStatus })
+      setOrdered(prev => prev.map(c => c.id === cat.id ? { ...c, status: newStatus } : c))
+    } catch {
+      Alert.fire({ message: 'Error al cambiar estado', type: 'error' })
+    } finally {
+      setToggling(null)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -191,6 +205,22 @@ export default function Categories() {
                 <p className="text-xs text-zinc-500">{cat.slug}</p>
               </div>
               <span className="text-xs text-zinc-600">{cat.products?.length || 0} productos</span>
+              <button
+                onClick={() => handleToggleStatus(cat)}
+                disabled={toggling === cat.id}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer disabled:opacity-50 w-[96px] justify-center shrink-0
+                  ${cat.status === 'active'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20'
+                  }`}
+              >
+                {toggling === cat.id ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <span className={`w-2 h-2 rounded-full ${cat.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                )}
+                {cat.status === 'active' ? 'Activo' : 'Borrador'}
+              </button>
               <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg text-zinc-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors opacity-0 group-hover:opacity-100">
                 <Edit className="w-4 h-4" />
               </button>
