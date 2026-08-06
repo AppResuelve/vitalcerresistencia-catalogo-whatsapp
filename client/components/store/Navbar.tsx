@@ -147,7 +147,7 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
                     >
                       {item.label}
                       {hasCategories && (
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${desktopProductsOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown suppressHydrationWarning className={`w-3.5 h-3.5 transition-transform ${desktopProductsOpen ? "rotate-180" : ""}`} />
                       )}
                     </Link>
                     {hasCategories && (
@@ -288,6 +288,7 @@ export function Navbar({ heroMode = false, onOpenModal, onOpenCart }) {
                           {item.label}
                         </span>
                         <ChevronDown
+                          suppressHydrationWarning
                           className="w-4 h-4 transition-transform"
                           style={{ transform: mobileProductsOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                         />
