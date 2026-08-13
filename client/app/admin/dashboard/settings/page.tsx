@@ -4,12 +4,14 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from "next/navigation"
+import { Download } from 'lucide-react'
 import { Button, Input, Textarea } from '@/components/admin/ui/Form'
 import { Card } from '@/components/admin/ui/Card'
 import { Spinner } from '@/components/admin/ui/Spinner'
 import { useUnsavedChanges } from '@/context/UnsavedChangesContext'
 import ImageUpload from '@/components/admin/ImageUpload'
 import ScheduleInput from '@/components/admin/ScheduleInput'
+import { downloadTemplate } from '@/components/admin/lib/excel-utils'
 import api from '@/services/admin-api'
 
 const DEFAULT_SETTINGS = {
@@ -58,6 +60,20 @@ export default function Settings() {
       setMessage('Error al guardar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDownloadProducts = async () => {
+    try {
+      const { data } = await api.get('/admin/products/export', { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([data]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'productos.xlsx'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch {
+      setMessage('Error al descargar productos')
     }
   }
 
@@ -177,6 +193,20 @@ export default function Settings() {
           )}
         </div>
       </form>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-zinc-100 mb-4">Planillas de productos</h2>
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" variant="secondary" onClick={handleDownloadProducts}>
+            <Download className="w-4 h-4" />
+            Descargar planilla de productos
+          </Button>
+          <Button type="button" variant="secondary" onClick={downloadTemplate}>
+            <Download className="w-4 h-4" />
+            Descargar plantilla vacía
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }

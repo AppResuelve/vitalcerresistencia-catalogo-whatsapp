@@ -834,4 +834,67 @@ const bulkUpdate = async (field, products) => {
   return { updated, skipped, warnings }
 }
 
-module.exports = { list, getById, create, update, remove, toggleStatus, bulkCreate, exportToExcel, previewDiff, bulkUpdate };
+const systemUpdate = async (field, value, productIds) => {
+  const productKey = FIELD_TO_PRODUCT_KEY[field]
+  const skuKey = FIELD_TO_SKU_KEY[field]
+
+  let updated = 0
+  let skipped = 0
+  const warnings = []
+
+  for (let i = 0; i < productIds.length; i += BULK_CHUNK) {
+    const chunkIds = productIds.slice(i, i + BULK_CHUNK)
+    const products = await Product.findAll({
+      where: { id: chunkIds },
+      include: [skuInclude],
+    })
+
+    const t = await sequelize.transaction()
+    try {
+      for (const product of products) {
+        if (field === 'status') {
+          await product.update({ status: value }, { transaction: t })
+          updated++
+          continue
+        }
+
+        if (field === 'categoryId') {
+          await product.update({ categoryId: value == null ? null : Number(value) }, { transaction: t })
+          updated++
+          continue
+        }
+
+        const hasRealVariants =
+          (product.skus || []).some(s => (s.attributeValues || []).length > 0) &&
+          !productHasOnlyUnitAttributes(product)
+
+        if (hasRealVariants) {
+          skipped++
+          warnings.push({ slug: product.slug, reason: 'Producto con variantes, editar individualmente' })
+          continue
+        }
+
+        if (productKey) {
+          const updates = buildProductUpdate(field, value, product)
+          if (Object.keys(updates).length > 0) {
+            await product.update(updates, { transaction: t })
+          }
+        }
+
+        if (skuKey && product.skus?.length) {
+          await product.skus[0].update({ [skuKey]: toDbValue(field, value) }, { transaction: t })
+        }
+
+        updated++
+      }
+      await t.commit()
+    } catch (err) {
+      await t.rollback()
+      throw err
+    }
+  }
+
+  return { updated, skipped, warnings }
+}
+
+module.exports = { list, getById, create, update, remove, toggleStatus, bulkCreate, exportToExcel, previewDiff, bulkUpdate, systemUpdate };

@@ -1,4 +1,5 @@
 // @ts-nocheck
+import * as XLSX from 'xlsx'
 
 export const slugify = (text) =>
   text
@@ -48,6 +49,12 @@ export const UPDATE_FIELDS = [
 export const FIELD_UPDATE_LABELS = Object.fromEntries(
   UPDATE_FIELDS.map(f => [f.key, f.label])
 )
+
+export const SYSTEM_FIELDS = [
+  ...UPDATE_FIELDS,
+  { key: 'status', label: 'Estado', inputType: 'status' },
+  { key: 'categoryId', label: 'Categoría', inputType: 'category' },
+]
 
 export function detectColumn(headers, aliases) {
   const lower = headers.map((h) => h.toLowerCase().trim())
@@ -168,4 +175,32 @@ export function parseUpdateProducts(rawData, slugCol, nameCol, priceCol, optiona
   }
 
   return { products, errors }
+}
+
+export function downloadTemplate() {
+  const headers = [
+    'nombre', 'descripcion', 'precio', 'stock',
+    'precio_mayorista', 'cantidad_mayorista',
+    'descuento', 'imagen', 'sku',
+    'atributo_1', 'valor_1', 'atributo_2', 'valor_2',
+  ]
+  const example1 = [
+    'Remera básica', 'Remera de algodón', 1500, 10,
+    '', '', '', '', '',
+    'Color', 'Rojo', 'Talle', 'M',
+  ]
+  const example2 = [
+    'Remera básica', '', 1800, 5,
+    '', '', '', '', '',
+    'Color', 'Rojo', 'Talle', 'XL',
+  ]
+  const example3 = [
+    'Alfajor chocolate', 'Sin variantes', 1400, 100,
+    1000, 12, '', '', '',
+    '', '', '', '',
+  ]
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.aoa_to_sheet([headers, example1, example2, example3])
+  XLSX.utils.book_append_sheet(wb, ws, 'Productos')
+  XLSX.writeFile(wb, 'plantilla-productos.xlsx')
 }

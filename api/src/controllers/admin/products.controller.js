@@ -1,5 +1,5 @@
 const productsService = require('../../services/admin/products.service')
-const { validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate } = require('../../validations/product.schema')
+const { validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate, validateSystemUpdate } = require('../../validations/product.schema')
 
 const list = async (req, res, next) => {
   try {
@@ -103,4 +103,14 @@ const previewDiff = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, update, remove, bulkCreate, toggleStatus, exportProducts, bulkUpdate, previewDiff }
+const systemUpdate = async (req, res, next) => {
+  try {
+    const { field, value, productIds } = validateSystemUpdate(req.body)
+    const result = await productsService.systemUpdate(field, value, productIds)
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { list, getById, create, update, remove, bulkCreate, toggleStatus, exportProducts, bulkUpdate, previewDiff, systemUpdate }

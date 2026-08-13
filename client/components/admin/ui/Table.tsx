@@ -2,12 +2,14 @@
 'use client'
 import { Checkbox } from './Checkbox'
 
-export function Table({ columns, data, onRowClick, emptyMessage = 'No hay datos', selectable = false, selected = [], onSelectionChange }) {
+export function Table({ columns, data, onRowClick, emptyMessage = 'No hay datos', selectable = false, selected = [], onSelectionChange, onSelectAll }) {
 
-  const allChecked = selectable && data.length > 0 && selected.length === data.length
-  const someChecked = selectable && selected.length > 0 && selected.length < data.length
+  const currentSelectedCount = data.filter((row) => selected.includes(row.id)).length
+  const allChecked = selectable && data.length > 0 && currentSelectedCount === data.length
+  const someChecked = selectable && currentSelectedCount > 0 && currentSelectedCount < data.length
 
   const handleSelectAll = () => {
+    if (onSelectAll) { onSelectAll(); return }
     if (!onSelectionChange) return
     if (allChecked) {
       onSelectionChange([])

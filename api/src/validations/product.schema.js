@@ -92,6 +92,8 @@ const UPDATE_FIELD_ENUM = [
   'stock', 'sku', 'images',
 ]
 
+const SYSTEM_FIELD_ENUM = [...UPDATE_FIELD_ENUM, 'status', 'categoryId']
+
 const attrValueSchema = z.object({
   attrName: z.string(),
   value: z.string(),
@@ -123,6 +125,12 @@ const bulkUpdateSchema = z.object({
   })),
 })
 
+const systemUpdateSchema = z.object({
+  field: z.enum(SYSTEM_FIELD_ENUM, 'Campo inválido para actualizar'),
+  value: z.any().optional(),
+  productIds: z.array(z.coerce.number().int()).min(1, 'Debe seleccionar al menos un producto'),
+})
+
 function validateBulkPreview(body) {
   const result = bulkPreviewSchema.safeParse(body)
   if (!result.success) {
@@ -141,4 +149,13 @@ function validateBulkUpdate(body) {
   return result.data
 }
 
-module.exports = { productSchema, productUpdateSchema, bulkProductSchema, bulkPreviewSchema, bulkUpdateSchema, validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate }
+function validateSystemUpdate(body) {
+  const result = systemUpdateSchema.safeParse(body)
+  if (!result.success) {
+    const message = result.error.issues.map(e => e.message).join(', ')
+    throw Object.assign(new Error(message), { status: 400 })
+  }
+  return result.data
+}
+
+module.exports = { productSchema, productUpdateSchema, bulkProductSchema, bulkPreviewSchema, bulkUpdateSchema, systemUpdateSchema, validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate, validateSystemUpdate }

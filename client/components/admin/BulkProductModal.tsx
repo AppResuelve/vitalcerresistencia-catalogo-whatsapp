@@ -18,35 +18,8 @@ import {
   VAL_COL_PATTERN,
   detectColumn,
   parseProducts,
+  downloadTemplate,
 } from './lib/excel-utils'
-
-function downloadTemplate() {
-  const headers = [
-    'nombre', 'descripcion', 'precio', 'stock',
-    'precio_mayorista', 'cantidad_mayorista',
-    'descuento', 'imagen', 'sku',
-    'atributo_1', 'valor_1', 'atributo_2', 'valor_2',
-  ]
-  const example1 = [
-    'Remera básica', 'Remera de algodón', 1500, 10,
-    '', '', '', '', '',
-    'Color', 'Rojo', 'Talle', 'M',
-  ]
-  const example2 = [
-    'Remera básica', '', 1800, 5,
-    '', '', '', '', '',
-    'Color', 'Rojo', 'Talle', 'XL',
-  ]
-  const example3 = [
-    'Alfajor chocolate', 'Sin variantes', 1400, 100,
-    1000, 12, '', '', '',
-    '', '', '', '',
-  ]
-  const wb = XLSX.utils.book_new()
-  const ws = XLSX.utils.aoa_to_sheet([headers, example1, example2, example3])
-  XLSX.utils.book_append_sheet(wb, ws, 'Productos')
-  XLSX.writeFile(wb, 'plantilla-productos.xlsx')
-}
 
 export default function BulkProductModal({ open, onClose, categories, onCreated }) {
   const Alert = useAlert()

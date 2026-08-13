@@ -12,5 +12,6 @@ router.delete('/:id', productsController.remove)
 router.post('/bulk', productsController.bulkCreate)
 router.post('/bulk-update/preview', productsController.previewDiff)
 router.post('/bulk-update', productsController.bulkUpdate)
+router.post('/bulk-update/system', productsController.systemUpdate)
 
 module.exports = router

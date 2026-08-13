@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Plus, Search, Edit, Trash2, FileSpreadsheet, MoreHorizontal, Download, Upload } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, FileSpreadsheet, MoreHorizontal, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/admin/ui/Form'
 import { DropdownSelect } from '@/components/admin/ui/DropdownSelect'
 import { Table } from '@/components/admin/ui/Table'
 import { Modal } from '@/components/admin/ui/Modal'
 import { Spinner } from '@/components/admin/ui/Spinner'
+import { Pagination } from '@/components/admin/ui/Pagination'
 import BulkProductModal from '@/components/admin/BulkProductModal'
 import BulkUpdateModal from '@/components/admin/BulkUpdateModal'
+import SystemUpdateModal from '@/components/admin/SystemUpdateModal'
 import { useProducts } from '@/hooks/admin-useProducts'
 import { useCategories } from '@/hooks/admin-useCategories'
 import { useTags } from '@/hooks/admin-useTags'
@@ -28,11 +30,13 @@ export default function Products() {
   const [page, setPage] = useState(() => Number(searchParams?.get('page')) || 1)
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false)
+  const [systemUpdateOpen, setSystemUpdateOpen] = useState(false)
   const [toggling, setToggling] = useState(null)
   const [selected, setSelected] = useState([])
   const [bulkProcessing, setBulkProcessing] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [newMenuOpen, setNewMenuOpen] = useState(false)
+  const [editMenuOpen, setEditMenuOpen] = useState(false)
 
   const params = { page, limit: 20, search, ...(categoryId && { categoryId }), ...(tagId && { tagId }) }
   const { products, total, totalPages, loading, refetch, updateProduct } = useProducts(params)
@@ -63,33 +67,6 @@ export default function Products() {
     }
   }
 
-  const handleBulkStatus = async (status) => {
-    const label = status === 'active' ? 'activar' : 'desactivar'
-    const result = await Alert.fire({
-      title: `¿${label.charAt(0).toUpperCase() + label.slice(1)} ${selected.length} producto(s)?`,
-      type: 'warning',
-      variant: 'modal',
-      showCancelButton: true,
-      confirmButtonText: label.charAt(0).toUpperCase() + label.slice(1),
-      cancelButtonText: 'Cancelar',
-    })
-    if (!result.isConfirmed) return
-
-    setBulkProcessing(true)
-    try {
-      for (const id of selected) {
-        await api.patch(`/admin/products/${id}/status`, { status })
-        updateProduct(id, { status })
-      }
-      Alert.fire({ message: `${selected.length} producto(s) ${status === 'active' ? 'activados' : 'pasados a borrador'}`, type: 'success' })
-      setSelected([])
-    } catch {
-      Alert.fire({ message: 'Error al cambiar estado', type: 'error' })
-    } finally {
-      setBulkProcessing(false)
-    }
-  }
-
   const handleBulkDelete = async () => {
     const result = await Alert.fire({
       title: '¿Eliminar productos?',
@@ -117,6 +94,31 @@ export default function Products() {
     }
   }
 
+  const handleSelectAll = async () => {
+    const currentIds = new Set(products.map(p => p.id))
+    const outsideCount = selected.filter(id => !currentIds.has(id)).length
+    const allCurrentSelected = products.length > 0 && products.every(p => selected.includes(p.id))
+
+    if (outsideCount > 0) {
+      const action = allCurrentSelected
+        ? 'se borrará toda la selección (incluidos los de otras páginas)'
+        : 'se reemplazará la selección actual por la de esta página'
+      const result = await Alert.fire({
+        title: 'Reemplazar selección',
+        message: `Tenés ${outsideCount} producto(s) seleccionado(s) en otras páginas. Al continuar, ${action}.`,
+        type: 'warning',
+        variant: 'modal',
+        showCancelButton: true,
+        confirmButtonText: 'Continuar',
+        cancelButtonText: 'Cancelar',
+      })
+      if (!result.isConfirmed) return
+    }
+
+    if (allCurrentSelected) setSelected([])
+    else setSelected(products.map(p => p.id))
+  }
+
   const handleDelete = async (product) => {
     const result = await Alert.fire({
       title: '¿Eliminar producto?',
@@ -138,20 +140,6 @@ export default function Products() {
     if (categoryId) params.set('categoryId', categoryId)
     if (tagId) params.set('tagId', tagId)
     return `/dashboard/products/${productId}?${params.toString()}`
-  }
-
-  const handleExport = async () => {
-    try {
-      const { data } = await api.get('/admin/products/export', { responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([data]))
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'productos.xlsx'
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch {
-      Alert.fire({ message: 'Error al exportar productos', type: 'error' })
-    }
   }
 
   const columns = [
@@ -267,21 +255,6 @@ export default function Products() {
                     <FileSpreadsheet className="w-4 h-4" />
                     Creación masiva
                   </button>
-                  <div className="my-1 border-t border-zinc-700" />
-                  <button
-                    onClick={() => { setNewMenuOpen(false); handleExport() }}
-                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Exportar lista
-                  </button>
-                  <button
-                    onClick={() => { setNewMenuOpen(false); setBulkUpdateOpen(true) }}
-                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Actualización masiva
-                  </button>
                 </div>
               </>
             )}
@@ -318,24 +291,44 @@ export default function Products() {
       </div>
 
       {/* Bulk actions */}
-      <div className={`flex items-center gap-3 mb-4 px-4 rounded-xl bg-cyan-500/5 border transition-all duration-300 ease-out overflow-hidden
-        ${selected.length > 0
-          ? 'max-h-20 py-3 opacity-100 border-cyan-500/20'
-          : 'max-h-0 py-0 opacity-0 border-transparent'
-        }`}
-      >
+      <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20">
         <span className="text-sm text-cyan-400 font-medium whitespace-nowrap">{selected.length} seleccionado(s)</span>
         <div className="flex items-center gap-2 ml-auto shrink-0">
-          <Button size="sm" onClick={() => handleBulkStatus('active')} disabled={bulkProcessing}>
-            {bulkProcessing ? '...' : 'Activar'}
-          </Button>
-          <Button size="sm" variant="secondary" onClick={() => handleBulkStatus('draft')} disabled={bulkProcessing}>
-            {bulkProcessing ? '...' : 'Borrador'}
-          </Button>
+          <div className="relative">
+            <Button size="sm" variant="secondary" onClick={() => {
+              if (selected.length > 0) setEditMenuOpen(!editMenuOpen)
+              else setBulkUpdateOpen(true)
+            }}>
+              <Edit className="w-4 h-4" />
+              Editar
+            </Button>
+            {editMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setEditMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-52 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-20 p-1">
+                  <button
+                    onClick={() => { setEditMenuOpen(false); setSystemUpdateOpen(true) }}
+                    disabled={selected.length < 2}
+                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    Desde el sistema
+                  </button>
+                  <button
+                    onClick={() => { setEditMenuOpen(false); setBulkUpdateOpen(true) }}
+                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Planilla Excel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <button
             onClick={handleBulkDelete}
-            disabled={bulkProcessing}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors disabled:opacity-50"
+            disabled={bulkProcessing || selected.length < 2}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -363,22 +356,13 @@ export default function Products() {
         selectable
         selected={selected}
         onSelectionChange={setSelected}
+        onSelectAll={handleSelectAll}
       />
 
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <Button variant="secondary" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-            Anterior
-          </Button>
-          <span className="text-sm text-zinc-400 px-3">Página {page} de {totalPages}</span>
-          <Button variant="secondary" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-            Siguiente
-          </Button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <BulkProductModal
         open={bulkOpen}
@@ -391,6 +375,14 @@ export default function Products() {
         open={bulkUpdateOpen}
         onClose={() => setBulkUpdateOpen(false)}
         onUpdated={refetch}
+      />
+
+      <SystemUpdateModal
+        open={systemUpdateOpen}
+        onClose={() => setSystemUpdateOpen(false)}
+        selectedIds={selected}
+        categories={categories}
+        onUpdated={() => { refetch(); setSelected([]) }}
       />
 
       {/* More actions modal */}
