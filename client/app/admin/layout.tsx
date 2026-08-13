@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react"
 import { Menu } from "lucide-react"
 import dynamic from "next/dynamic"
-import { DM_Sans } from "next/font/google"
 import { usePathname, useRouter } from "next/navigation"
 import { AuthProvider, useAuth } from "@/components/admin/context/AuthContext"
 import { AlertProvider } from "@/components/admin/ui/AlertContext"
@@ -14,13 +13,6 @@ import { Spinner } from "@/components/admin/ui/Spinner"
 import { Skeleton } from "@/components/admin/ui/Skeleton"
 
 const Sidebar = dynamic(() => import("@/components/admin/Sidebar"), { ssr: false })
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-admin',
-  display: 'swap',
-})
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
@@ -128,7 +120,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`admin-root ${dmSans.variable}`}>
+    <div className="admin-root">
       <AlertProvider>
         <UnsavedChangesProvider>
           <AuthProvider>
