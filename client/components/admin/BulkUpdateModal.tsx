@@ -267,13 +267,6 @@ export default function BulkUpdateModal({ open, onClose, onUpdated }) {
       })
   }
 
-  const getVariantLabel = (p) => {
-    if (!p.skus?.length) return '—'
-    return p.skus.slice(0, 3).map(s =>
-      s.attrValues?.map(a => `${a.attrName}: ${a.value}`).join(', ')
-    ).join(' | ') + (p.skus.length > 3 ? ` +${p.skus.length - 3}` : '')
-  }
-
   const renderColumnSelect = (value, onChange, placeholder = '-- No mapear --', includeEmpty = true) => (
     <select value={value || ''} onChange={onChange}
       className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500">
@@ -418,33 +411,6 @@ export default function BulkUpdateModal({ open, onClose, onUpdated }) {
               </p>
               {errors.slice(0, 10).map((e, i) => <p key={i}>• {e}</p>)}
               {errors.length > 10 && <p>… y {errors.length - 10} más.</p>}
-            </div>
-          )}
-
-          {parsed.length > 0 && (
-            <div className="max-h-72 overflow-y-auto border border-zinc-800 rounded-lg">
-              <table className="w-full text-sm">
-                <thead className="bg-zinc-900 sticky top-0">
-                  <tr className="text-zinc-500 text-xs uppercase tracking-wider">
-                    <th className="text-left px-3 py-2 font-medium">Nombre</th>
-                    <th className="text-left px-3 py-2 font-medium">Slug</th>
-                    {selectedFieldDef && <th className="text-right px-3 py-2 font-medium">{selectedFieldDef.label}</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  {parsed.slice(0, 50).map((p, i) => (
-                    <tr key={i} className="text-zinc-300">
-                      <td className="px-3 py-2 truncate max-w-[180px]">{p.name}</td>
-                      <td className="px-3 py-2 text-zinc-500 font-mono text-xs">{p.excelSlug || p.slug}</td>
-                      {selectedFieldDef && (
-                        <td className="px-3 py-2 text-right text-xs text-zinc-300">
-                          {p.skus?.length ? getVariantLabel(p) : formatFieldValue(selectedField, p.value)}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           )}
 
