@@ -121,7 +121,7 @@ const syncSkus = async (productId, skus = [], basePrices, transaction) => {
   for (const s of skus) {
     const skuData = {
       productId: productId,
-      retailPrice: s.retailPrice || basePrices?.retailPrice || 0,
+      retailPrice: s.retailPrice != null ? s.retailPrice : (basePrices?.retailPrice ?? 0),
       wholesalePrice: s.wholesalePrice ?? basePrices?.wholesalePrice ?? null,
       wholesaleMinQty: s.wholesaleMinQty ?? basePrices?.wholesaleMinQty ?? null,
       stock: s.stock ?? 0,
@@ -190,7 +190,7 @@ const create = async (data) => {
   data.comparePrice = comparePrice;
   data.discountPercentage = discountPercentage;
 
-  const { skus, tagIds, ...productData } = data;
+  const { skus, tagIds, stock, ...productData } = data;
 
   const result = await sequelize.transaction(async (t) => {
     const product = await Product.create(productData, { transaction: t });
@@ -223,7 +223,7 @@ const create = async (data) => {
           retailPrice: product.retailPrice || 0,
           wholesalePrice: product.wholesalePrice,
           wholesaleMinQty: product.wholesaleMinQty,
-          stock: 0, sku: null, images: [], sortOrder: 0, status: 'active',
+          stock: stock != null ? Number(stock) : 0, sku: null, images: [], sortOrder: 0, status: 'active',
         },
         transaction: t,
       })
@@ -232,6 +232,7 @@ const create = async (data) => {
           retailPrice: product.retailPrice || 0,
           wholesalePrice: product.wholesalePrice,
           wholesaleMinQty: product.wholesaleMinQty,
+          ...(stock != null && { stock: Number(stock) }),
         }, { transaction: t })
       }
       // Asegurar que no tenga attributeValues (es base)
@@ -267,14 +268,14 @@ const update = async (id, data) => {
   data.comparePrice = comparePrice;
   data.discountPercentage = discountPercentage;
 
-  const { skus, tagIds, ...productData } = data;
+  const { skus, tagIds, stock, ...productData } = data;
 
   const result = await sequelize.transaction(async (t) => {
     await product.update(productData, { transaction: t });
     if (tagIds !== undefined) {
       await product.setTagValues(tagIds, { transaction: t });
     }
-    if (skus && Array.isArray(skus)) {
+    if (skus && skus.length > 0) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
       if (!productHasUnitType(product)) {
@@ -290,7 +291,7 @@ const update = async (id, data) => {
           retailPrice: product.retailPrice || 0,
           wholesalePrice: product.wholesalePrice,
           wholesaleMinQty: product.wholesaleMinQty,
-          stock: 0, sku: null, images: [], sortOrder: 0, status: 'active',
+          stock: stock != null ? Number(stock) : 0, sku: null, images: [], sortOrder: 0, status: 'active',
         },
         transaction: t,
       })
@@ -299,6 +300,7 @@ const update = async (id, data) => {
           retailPrice: product.retailPrice || 0,
           wholesalePrice: product.wholesalePrice,
           wholesaleMinQty: product.wholesaleMinQty,
+          ...(stock != null && { stock: Number(stock) }),
         }, { transaction: t })
       }
       await baseSku.setAttributeValues([], { transaction: t })
@@ -358,11 +360,12 @@ const bulkCreate = async (products, categoryId) => {
     try {
       for (let i = 0; i < rows.length; i += CHUNK) {
         const chunk = rows.slice(i, i + CHUNK)
+        const chunkProducts = products.slice(i, i + CHUNK)
         const created = await Product.bulkCreate(chunk, { validate: true, transaction: t })
-        await ProductSku.bulkCreate(created.map((p) => ({
+        await ProductSku.bulkCreate(created.map((p, idx) => ({
           productId: p.id, retailPrice: p.retailPrice || 0,
           wholesalePrice: p.wholesalePrice || null, wholesaleMinQty: p.wholesaleMinQty || null,
-          stock: 0, sku: null, images: [], sortOrder: 0, status: "active",
+          stock: chunkProducts[idx]?.stock ?? 0, sku: chunkProducts[idx]?.sku || null, images: [], sortOrder: 0, status: "active",
         })), { transaction: t })
       }
       await t.commit()
@@ -408,6 +411,8 @@ const bulkCreate = async (products, categoryId) => {
       if (p.skus?.length > 0) {
         // Build resolvedAttributes for SKU code generation
         const resolvedAttributes = []
+        const skuList = []
+        const allAttrIds = []
         for (const sku of p.skus) {
           const attributeValueIds = []
           if (sku.attrValues?.length > 0) {
@@ -432,8 +437,9 @@ const bulkCreate = async (products, categoryId) => {
               if (!resolved.values.find(v => v.id === attrValue.id)) resolved.values.push({ id: attrValue.id, value: attrValue.value })
             }
           }
-          await syncSkus(product.id, [{
-            retailPrice: sku.retailPrice || retailPrice,
+          allAttrIds.push(...attributeValueIds)
+          skuList.push({
+            retailPrice: sku.retailPrice != null ? sku.retailPrice : retailPrice,
             wholesalePrice: sku.wholesalePrice ?? basePrices.wholesalePrice,
             wholesaleMinQty: sku.wholesaleMinQty ?? basePrices.wholesaleMinQty,
             stock: sku.stock || 0,
@@ -442,7 +448,22 @@ const bulkCreate = async (products, categoryId) => {
             sortOrder: sku.sortOrder || 0,
             status: sku.status || 'active',
             attributeValueIds,
-          }], basePrices, t)
+          })
+        }
+        await syncSkus(product.id, skuList, basePrices, t)
+
+        let hasUnitType = false
+        if (allAttrIds.length > 0) {
+          const vals = await AttributeValue.findAll({
+            where: { id: allAttrIds },
+            include: [{ model: Attribute, as: 'attribute', attributes: ['unitType'] }],
+            transaction: t,
+          })
+          hasUnitType = vals.some(v => v.attribute?.unitType)
+        }
+        if (!hasUnitType) {
+          applySyncPrices(product, skuList)
+          await product.save({ transaction: t })
         }
       } else {
         // Producto simple con variantes en el batch → SKU base
@@ -450,7 +471,7 @@ const bulkCreate = async (products, categoryId) => {
           productId: product.id, retailPrice: retailPrice || 0,
           wholesalePrice: productData.wholesalePrice || null,
           wholesaleMinQty: productData.wholesaleMinQty || null,
-          stock: 0, sku: null, images: [], sortOrder: 0, status: 'active',
+          stock: p.stock ?? 0, sku: p.sku || null, images: [], sortOrder: 0, status: 'active',
         }, { transaction: t })
       }
     }
@@ -460,4 +481,357 @@ const bulkCreate = async (products, categoryId) => {
   return { created: createdCount, warnings, createdAttributes }
 };
 
-module.exports = { list, getById, create, update, remove, toggleStatus, bulkCreate };
+const productHasOnlyUnitAttributes = (product) => {
+  const skus = product.skus || []
+  if (skus.length === 0) return false
+  for (const sku of skus) {
+    for (const av of sku.attributeValues || []) {
+      if (!av.attribute?.unitType) return false
+    }
+  }
+  return skus.some(s => (s.attributeValues || []).length > 0 && s.attributeValues.some(av => av.attribute?.unitType))
+}
+
+const exportToExcel = async () => {
+  const products = await Product.findAll({
+    order: [['name', 'ASC']],
+    include: [
+      skuInclude,
+      { model: Category, as: 'category', attributes: ['name'] },
+    ],
+  })
+
+  let maxAttrs = 0
+  const variantsInfo = []
+
+  for (const p of products) {
+    const skus = p.skus || []
+    const allValues = skus.flatMap(s => s.attributeValues || [])
+    const hasSkus = allValues.length > 0
+    const onlyUnit = productHasOnlyUnitAttributes(p)
+
+    if (hasSkus && !onlyUnit) {
+      const attrNames = [...new Set(allValues.map(av => av.attribute?.name).filter(Boolean))]
+      maxAttrs = Math.max(maxAttrs, attrNames.length)
+      variantsInfo.push({
+        product: p,
+        isVariant: true,
+        skus,
+        attrNames,
+      })
+    } else {
+      variantsInfo.push({
+        product: p,
+        isVariant: false,
+        sku: skus[0] || null,
+      })
+    }
+  }
+
+  const attrHeaders = []
+  for (let i = 1; i <= maxAttrs; i++) {
+    attrHeaders.push(`atributo_${i}`)
+    attrHeaders.push(`valor_${i}`)
+  }
+
+  const headers = [
+    'slug', 'nombre', 'categoria', 'precio', 'precio_mayorista',
+    'cantidad_mayorista', 'descuento', 'precio_comparacion',
+    'descripcion', 'stock', 'sku', 'imagen',
+    ...attrHeaders,
+  ]
+
+  const rows = []
+
+  for (const info of variantsInfo) {
+    const p = info.product
+
+    if (info.isVariant) {
+      for (const s of info.skus) {
+        const avs = s.attributeValues || []
+        const attrMap = {}
+        for (const av of avs) {
+          if (av.attribute?.name) attrMap[av.attribute.name] = av.value
+        }
+
+        const row = [
+          p.slug, p.name, p.category?.name || '',
+          Number(s.retailPrice) || 0, Number(s.wholesalePrice) || '',
+          s.wholesaleMinQty ?? '', p.discountPercentage ?? '',
+          Number(p.comparePrice) || '', p.description || '',
+          s.stock ?? 0, s.sku || '', (s.images?.[0] || ''),
+        ]
+
+        for (const attrName of info.attrNames) {
+          row.push(attrName)
+          row.push(attrMap[attrName] || '')
+        }
+        for (let i = info.attrNames.length; i < maxAttrs; i++) {
+          row.push('', '')
+        }
+
+        rows.push(row)
+      }
+    } else {
+      const sku = info.sku
+      const row = [
+        p.slug, p.name, p.category?.name || '',
+        Number(p.retailPrice) || 0, Number(p.wholesalePrice) || '',
+        p.wholesaleMinQty ?? '', p.discountPercentage ?? '',
+        Number(p.comparePrice) || '', p.description || '',
+        sku?.stock ?? 0, sku?.sku || '', (p.images?.[0] || ''),
+      ]
+      for (let i = 0; i < maxAttrs; i++) {
+        row.push('', '')
+      }
+
+      rows.push(row)
+    }
+  }
+
+  const XLSX = require('xlsx')
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Productos')
+  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+  return buffer
+}
+
+const FIELD_TO_PRODUCT_KEY = {
+  retailPrice: 'retailPrice',
+  wholesalePrice: 'wholesalePrice',
+  wholesaleMinQty: 'wholesaleMinQty',
+  discountPercentage: 'discountPercentage',
+  comparePrice: 'comparePrice',
+  description: 'description',
+  images: 'images',
+}
+
+const FIELD_TO_SKU_KEY = {
+  retailPrice: 'retailPrice',
+  wholesalePrice: 'wholesalePrice',
+  wholesaleMinQty: 'wholesaleMinQty',
+  stock: 'stock',
+  sku: 'sku',
+  images: 'images',
+}
+
+const STRING_FIELDS = ['description', 'sku']
+
+const BULK_CHUNK = 1000
+
+function normalizeValue(field, val) {
+  if (val == null || val === '') return null
+  if (STRING_FIELDS.includes(field)) return String(val).trim()
+  if (field === 'images') return Array.isArray(val) ? (val[0] || '') : String(val)
+  return Number(val)
+}
+
+function toDbValue(field, val) {
+  if (val == null) {
+    if (field === 'images') return []
+    if (field === 'sku') return null
+    return null
+  }
+  if (field === 'images') return Array.isArray(val) ? val : [val]
+  if (STRING_FIELDS.includes(field)) return String(val)
+  return Number(val)
+}
+
+function matchSkuByAttrValues(dbSkus, attrValues) {
+  if (!attrValues?.length) return dbSkus?.[0] || null
+  for (const sku of dbSkus || []) {
+    const avs = sku.attributeValues || []
+    const match = attrValues.every(({ attrName, value }) =>
+      avs.some(av =>
+        av.attribute?.name?.toLowerCase() === attrName.toLowerCase() &&
+        av.value?.toString().toLowerCase() === value.toString().toLowerCase()
+      )
+    )
+    if (match) return sku
+  }
+  return null
+}
+
+function buildProductUpdate(field, newValue, product) {
+  if (field === 'discountPercentage') {
+    const pct = Number(newValue)
+    if (!isNaN(pct) && pct > 0) {
+      const { comparePrice, discountPercentage } = resolveDiscountFields(
+        Number(product.retailPrice) || 0,
+        product.comparePrice,
+        pct,
+      )
+      return { discountPercentage, comparePrice }
+    }
+    return { discountPercentage: null }
+  }
+  if (field === 'comparePrice') {
+    const { comparePrice } = resolveDiscountFields(
+      Number(product.retailPrice) || 0,
+      newValue,
+      product.discountPercentage,
+    )
+    return { comparePrice }
+  }
+  return { [field]: toDbValue(field, newValue) }
+}
+
+const previewDiff = async (field, products) => {
+  const productKey = FIELD_TO_PRODUCT_KEY[field]
+  const skuKey = FIELD_TO_SKU_KEY[field]
+
+  const allSlugs = [...new Set(products.map(p => p.slug).filter(Boolean))]
+  const diffs = []
+
+  for (let i = 0; i < allSlugs.length; i += BULK_CHUNK) {
+    const chunkSlugs = allSlugs.slice(i, i + BULK_CHUNK)
+    const existing = await Product.findAll({
+      where: { slug: chunkSlugs },
+      include: [skuInclude],
+    })
+    const productMap = {}
+    for (const p of existing) productMap[p.slug] = p
+
+    const chunkItems = products.filter(p => chunkSlugs.includes(p.slug))
+
+    for (const item of chunkItems) {
+      const product = productMap[item.slug]
+      if (!product) continue
+
+      const isUnitType = productHasOnlyUnitAttributes(product)
+      const hasSkuData = item.skus?.length > 0 && !isUnitType
+
+      if (hasSkuData) {
+        const skuDiffs = []
+        for (const skuData of item.skus) {
+          const dbSku = matchSkuByAttrValues(product.skus, skuData.attrValues)
+          if (!dbSku) continue
+          if (!skuKey) continue
+          const oldValue = normalizeValue(field, dbSku[skuKey])
+          const newValue = normalizeValue(field, skuData.value)
+          if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+            skuDiffs.push({ attrValues: skuData.attrValues || [], oldValue, newValue })
+          }
+        }
+        if (skuDiffs.length > 0) {
+          diffs.push({ slug: item.slug, name: product.name, skus: skuDiffs })
+        }
+      } else {
+        const oldValue = productKey
+          ? normalizeValue(field, product[productKey])
+          : (skuKey && product.skus?.length ? normalizeValue(field, product.skus[0][skuKey]) : null)
+        const newValue = normalizeValue(field, item.value)
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+          diffs.push({ slug: item.slug, name: product.name, oldValue, newValue })
+        }
+      }
+    }
+  }
+
+  return { field, total: products.length, diffs }
+}
+
+const bulkUpdate = async (field, products) => {
+  const productKey = FIELD_TO_PRODUCT_KEY[field]
+  const skuKey = FIELD_TO_SKU_KEY[field]
+
+  const allSlugs = [...new Set(products.map(p => p.slug).filter(Boolean))]
+  if (allSlugs.length === 0) {
+    throw Object.assign(new Error('No se encontraron slugs válidos en los datos'), { status: 400 })
+  }
+
+  let updated = 0
+  let skipped = 0
+  const warnings = []
+
+  for (let i = 0; i < allSlugs.length; i += BULK_CHUNK) {
+    const chunkSlugs = allSlugs.slice(i, i + BULK_CHUNK)
+    const existing = await Product.findAll({
+      where: { slug: chunkSlugs },
+      include: [skuInclude],
+    })
+    const productMap = {}
+    for (const p of existing) productMap[p.slug] = p
+
+    const chunkItems = products.filter(p => chunkSlugs.includes(p.slug))
+
+    const t = await sequelize.transaction()
+    try {
+      for (const item of chunkItems) {
+        const product = productMap[item.slug]
+        if (!product) {
+          skipped++
+          warnings.push({ slug: item.slug, reason: 'Producto no encontrado' })
+          continue
+        }
+
+        const isUnitType = productHasOnlyUnitAttributes(product)
+        const hasSkuData = item.skus?.length > 0 && !isUnitType
+
+        if (hasSkuData) {
+          let conflict = false
+          for (const skuData of item.skus) {
+            const dbSku = matchSkuByAttrValues(product.skus, skuData.attrValues)
+            if (!dbSku) {
+              warnings.push({ slug: item.slug, reason: 'SKU no encontrado (atributos no coinciden)' })
+              conflict = true
+              continue
+            }
+            if (!skuKey) continue
+            const current = normalizeValue(field, dbSku[skuKey])
+            const oldVal = normalizeValue(field, skuData.oldValue)
+            if (JSON.stringify(current) !== JSON.stringify(oldVal)) {
+              warnings.push({ slug: item.slug, reason: 'El valor fue modificado por otro usuario' })
+              conflict = true
+              continue
+            }
+            await dbSku.update({ [skuKey]: toDbValue(field, skuData.newValue) }, { transaction: t })
+          }
+
+          if (conflict) {
+            skipped++
+            continue
+          }
+
+          if (productKey && (field === 'retailPrice' || field === 'wholesalePrice' || field === 'wholesaleMinQty')) {
+            applySyncPrices(product, product.skus)
+            await product.save({ transaction: t })
+          }
+          updated++
+        } else {
+          const current = productKey
+            ? normalizeValue(field, product[productKey])
+            : (skuKey && product.skus?.length ? normalizeValue(field, product.skus[0][skuKey]) : null)
+          const oldVal = normalizeValue(field, item.oldValue)
+          if (JSON.stringify(current) !== JSON.stringify(oldVal)) {
+            warnings.push({ slug: item.slug, reason: 'El valor fue modificado por otro usuario' })
+            skipped++
+            continue
+          }
+
+          if (productKey) {
+            const productUpdates = buildProductUpdate(field, item.newValue, product)
+            if (Object.keys(productUpdates).length > 0) {
+              await product.update(productUpdates, { transaction: t })
+            }
+          }
+
+          if (skuKey && product.skus?.length) {
+            await product.skus[0].update({ [skuKey]: toDbValue(field, item.newValue) }, { transaction: t })
+          }
+
+          updated++
+        }
+      }
+      await t.commit()
+    } catch (err) {
+      await t.rollback()
+      throw err
+    }
+  }
+
+  return { updated, skipped, warnings }
+}
+
+module.exports = { list, getById, create, update, remove, toggleStatus, bulkCreate, exportToExcel, previewDiff, bulkUpdate };

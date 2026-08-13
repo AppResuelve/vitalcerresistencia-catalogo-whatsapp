@@ -1,12 +1,19 @@
 // @ts-nocheck
 'use client'
-export function Modal({ open, onClose, title, children, closable = true }) {
+const SIZES = {
+  sm: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-3xl',
+  '2xl': 'max-w-5xl',
+}
+
+export function Modal({ open, onClose, title, children, closable = true, size = 'lg' }) {
   if (!open) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closable ? onClose : undefined} />
-      <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className={`relative bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full ${SIZES[size] || SIZES.lg} max-h-[90vh] overflow-y-auto`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <h2 className="text-lg font-semibold text-zinc-100">{title}</h2>
           {closable && (

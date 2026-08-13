@@ -10,6 +10,7 @@ const productSchema = z.object({
   discountPercentage: z.coerce.number().int().min(1, 'El descuento debe ser al menos 1%').max(100, 'El descuento no puede superar 100%').nullable().optional(),
   wholesalePrice: z.coerce.number().nullable().optional(),
   wholesaleMinQty: z.coerce.number().int().nullable().optional(),
+  stock: z.coerce.number().int().optional(),
   status: z.enum(['active', 'draft']).optional(),
   tags: z.array(z.string()).optional(),
   tagIds: z.array(z.number()).optional(),
@@ -41,6 +42,8 @@ const bulkProductSchema = z.array(z.object({
   discountPercentage: z.coerce.number().int().min(1).max(100).nullable().optional(),
   wholesalePrice: z.coerce.number().nullable().optional(),
   wholesaleMinQty: z.coerce.number().int().nullable().optional(),
+  stock: z.coerce.number().int().optional(),
+  sku: z.string().nullable().optional(),
   skus: z.array(z.object({
     retailPrice: z.coerce.number().optional(),
     wholesalePrice: z.coerce.number().nullable().optional(),
@@ -83,4 +86,59 @@ function validateBulkProducts(body) {
   return result.data
 }
 
-module.exports = { productSchema, productUpdateSchema, bulkProductSchema, validateProduct, validateProductUpdate, validateBulkProducts }
+const UPDATE_FIELD_ENUM = [
+  'retailPrice', 'wholesalePrice', 'wholesaleMinQty',
+  'discountPercentage', 'comparePrice', 'description',
+  'stock', 'sku', 'images',
+]
+
+const attrValueSchema = z.object({
+  attrName: z.string(),
+  value: z.string(),
+})
+
+const bulkPreviewSchema = z.object({
+  field: z.enum(UPDATE_FIELD_ENUM, 'Campo inválido para actualizar'),
+  products: z.array(z.object({
+    slug: z.string().min(1, 'El slug es obligatorio para identificar el producto'),
+    value: z.any().optional(),
+    skus: z.array(z.object({
+      attrValues: z.array(attrValueSchema).optional(),
+      value: z.any().optional(),
+    })).optional(),
+  })),
+})
+
+const bulkUpdateSchema = z.object({
+  field: z.enum(UPDATE_FIELD_ENUM, 'Campo inválido para actualizar'),
+  products: z.array(z.object({
+    slug: z.string().min(1, 'El slug es obligatorio para identificar el producto'),
+    oldValue: z.any().optional(),
+    newValue: z.any().optional(),
+    skus: z.array(z.object({
+      attrValues: z.array(attrValueSchema).optional(),
+      oldValue: z.any().optional(),
+      newValue: z.any().optional(),
+    })).optional(),
+  })),
+})
+
+function validateBulkPreview(body) {
+  const result = bulkPreviewSchema.safeParse(body)
+  if (!result.success) {
+    const message = result.error.issues.map(e => e.message).join(', ')
+    throw Object.assign(new Error(message), { status: 400 })
+  }
+  return result.data
+}
+
+function validateBulkUpdate(body) {
+  const result = bulkUpdateSchema.safeParse(body)
+  if (!result.success) {
+    const message = result.error.issues.map(e => e.message).join(', ')
+    throw Object.assign(new Error(message), { status: 400 })
+  }
+  return result.data
+}
+
+module.exports = { productSchema, productUpdateSchema, bulkProductSchema, bulkPreviewSchema, bulkUpdateSchema, validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate }

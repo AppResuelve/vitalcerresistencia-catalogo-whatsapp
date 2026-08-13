@@ -9,104 +9,16 @@ import { Spinner } from './ui/Spinner'
 import { LoadingOverlay } from './ui/LoadingOverlay'
 import { useAlert } from './ui/AlertContext'
 import api from '@/services/admin-api'
-
-const slugify = (text) =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 255) || 'sin-nombre'
-
-const NAME_ALIASES = ['nombre', 'name', 'producto', 'product', 'product_name', 'producto_nombre']
-const PRICE_ALIASES = ['precio', 'price', 'importe', 'costo', 'valor', 'retail_price', 'precio_venta']
-
-const OPTIONAL_FIELDS = [
-  { key: 'description', label: 'Descripción', aliases: ['descripcion', 'description', 'desc', 'detalle'] },
-  { key: 'discountPercentage', label: '% Descuento', aliases: ['descuento', 'discount', 'porcentaje', 'off'] },
-  { key: 'comparePrice', label: 'Precio de comparación', aliases: ['precio_original', 'compare_price', 'precio_anterior'] },
-  { key: 'wholesalePrice', label: 'Precio mayorista', aliases: ['mayorista', 'wholesale', 'precio_mayorista'] },
-  { key: 'wholesaleMinQty', label: 'Cant. mín. mayorista', aliases: ['unidades_mayorista', 'wholesale_min', 'cantidad_mayorista', 'min_mayorista'] },
-  { key: 'stock', label: 'Stock', aliases: ['stock', 'cantidad', 'inventario', 'disponible'] },
-  { key: 'sku', label: 'Código SKU', aliases: ['sku', 'codigo', 'code', 'cod'] },
-  { key: 'images', label: 'URL imagen', aliases: ['imagen', 'image', 'foto', 'url_imagen', 'img'] },
-]
-
-const ATTR_COL_PATTERN = /^(atributo|attr)[\s_-]?(\d+)$/i
-const VAL_COL_PATTERN = /^(valor|val)[\s_-]?(\d+)$/i
-
-function detectColumn(headers, aliases) {
-  const lower = headers.map((h) => h.toLowerCase().trim())
-  for (const alias of aliases) {
-    const idx = lower.findIndex((h) => h === alias || h.includes(alias))
-    if (idx !== -1) return headers[idx]
-  }
-  return ''
-}
-
-function parseProducts(rawData, nameCol, priceCol, optionals, attrPairs) {
-  const products = []
-  const errors = []
-  const grouped = {}
-
-  rawData.rows.forEach((row, i) => {
-    const name = String(row[nameCol] ?? '').trim()
-    const price = row[priceCol]
-
-    if (!name) { errors.push(`Fila ${i + 2}: falta el nombre`); return }
-    if (price == null || price === '' || isNaN(Number(price)) || Number(price) < 0) {
-      errors.push(`Fila ${i + 2}: "${name}" — precio inválido`)
-      return
-    }
-
-    const key = name.toLowerCase()
-
-    if (!grouped[key]) {
-      grouped[key] = {
-        name,
-        slug: slugify(name),
-        price: Number(price),
-        skus: [],
-      }
-      for (const { key: fKey } of OPTIONAL_FIELDS) {
-        if (fKey === 'sku') continue  // SKU-level, handled below
-        const col = optionals[fKey]
-        if (!col || row[col] == null || row[col] === '') continue
-        if (fKey === 'images' || fKey === 'description') grouped[key][fKey] = String(row[col])
-        else { const num = Number(row[col]); if (!isNaN(num)) grouped[key][fKey] = num }
-      }
-    }
-
-    // Build SKU from attribute columns
-    const attrValues = []
-    attrPairs.forEach(({ attrCol, valCol, num }) => {
-      const attrName = String(row[attrCol] ?? '').trim()
-      const value = String(row[valCol] ?? '').trim()
-      if (attrName && value) attrValues.push({ attrName, value })
-    })
-
-    if (attrValues.length > 0) {
-      grouped[key].skus.push({
-        retailPrice: Number(row[priceCol]) || Number(price),
-        stock: optionals['stock'] && row[optionals['stock']] != null ? Number(row[optionals['stock']]) || 0 : 0,
-        sku: optionals['sku'] && row[optionals['sku']] != null ? String(row[optionals['sku']]).trim() : null,
-        attrValues,
-      })
-    }
-  })
-
-  for (const p of Object.values(grouped)) {
-    if (p.skus.length === 0) {
-      // Producto simple: usar stock del producto
-      const stock = p.stock || 0
-      delete p.stock
-      products.push(p)
-    } else {
-      products.push(p)
-    }
-  }
-
-  return { products, errors }
-}
+import {
+  NAME_ALIASES,
+  PRICE_ALIASES,
+  SLUG_ALIASES,
+  OPTIONAL_FIELDS,
+  ATTR_COL_PATTERN,
+  VAL_COL_PATTERN,
+  detectColumn,
+  parseProducts,
+} from './lib/excel-utils'
 
 function downloadTemplate() {
   const headers = [
@@ -145,6 +57,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
   const [rawData, setRawData] = useState(null)
   const [nameCol, setNameCol] = useState('')
   const [priceCol, setPriceCol] = useState('')
+  const [slugCol, setSlugCol] = useState('')
   const [optionals, setOptionals] = useState({})
   const [attrPairs, setAttrPairs] = useState([])
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -158,8 +71,8 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
 
   const { products: parsed, errors } = useMemo(() => {
     if (!rawData || !nameCol || !priceCol) return { products: [], errors: [] }
-    return parseProducts(rawData, nameCol, priceCol, optionals, attrPairs)
-  }, [rawData, nameCol, priceCol, optionals, attrPairs])
+    return parseProducts(rawData, nameCol, priceCol, optionals, attrPairs, { slugCol })
+  }, [rawData, nameCol, priceCol, optionals, attrPairs, slugCol])
 
   const detectedAttributes = useMemo(() => {
     const map = new Map<string, Set<string>>()
@@ -191,6 +104,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
     setRawData(null)
     setNameCol('')
     setPriceCol('')
+    setSlugCol('')
     setOptionals({})
     setAttrPairs([])
     setShowAdvanced(false)
@@ -212,8 +126,9 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
         const data = { headers, rows }
 
         setRawData(data)
-        setNameCol(detectColumn(headers, NAME_ALIASES) || headers[0])
-        setPriceCol(detectColumn(headers, PRICE_ALIASES) || headers[0])
+        setNameCol(detectColumn(headers, NAME_ALIASES))
+        setPriceCol(detectColumn(headers, PRICE_ALIASES))
+        setSlugCol(detectColumn(headers, SLUG_ALIASES))
 
         const detected = {}
         for (const { key, aliases } of OPTIONAL_FIELDS) {
@@ -256,7 +171,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
     setStep('creating')
 
     const payload = final.map(p => {
-      const { skus, stock, ...productData } = p
+      const { skus, ...productData } = p
       if (skus?.length > 0) return { ...productData, skus }
       return productData
     })
@@ -296,6 +211,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
     setRawData(null)
     setNameCol('')
     setPriceCol('')
+    setSlugCol('')
     setOptionals({})
     setAttrPairs([])
     setShowAdvanced(false)
@@ -312,6 +228,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
     setRawData(null)
     setNameCol('')
     setPriceCol('')
+    setSlugCol('')
     setOptionals({})
     setAttrPairs([])
     setShowAdvanced(false)
@@ -411,6 +328,7 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
                 onChange={(e) => setNameCol(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
               >
+                <option value="">-- Elegir --</option>
                 {rawData.headers.map((h) => (
                   <option key={h} value={h}>{h}</option>
                 ))}
@@ -425,6 +343,22 @@ export default function BulkProductModal({ open, onClose, categories, onCreated 
                 onChange={(e) => setPriceCol(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
               >
+                <option value="">-- Elegir --</option>
+                {rawData.headers.map((h) => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wider">
+                Slug (opcional)
+              </label>
+              <select
+                value={slugCol}
+                onChange={(e) => setSlugCol(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 text-sm focus:outline-none focus:border-cyan-500"
+              >
+                <option value="">-- No mapear --</option>
                 {rawData.headers.map((h) => (
                   <option key={h} value={h}>{h}</option>
                 ))}

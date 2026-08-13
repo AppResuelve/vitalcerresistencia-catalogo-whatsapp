@@ -1,5 +1,5 @@
 const productsService = require('../../services/admin/products.service')
-const { validateProduct, validateProductUpdate, validateBulkProducts } = require('../../validations/product.schema')
+const { validateProduct, validateProductUpdate, validateBulkProducts, validateBulkPreview, validateBulkUpdate } = require('../../validations/product.schema')
 
 const list = async (req, res, next) => {
   try {
@@ -72,4 +72,35 @@ const toggleStatus = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, update, remove, bulkCreate, toggleStatus }
+const exportProducts = async (req, res, next) => {
+  try {
+    const buffer = await productsService.exportToExcel()
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', 'attachment; filename=productos.xlsx')
+    res.send(buffer)
+  } catch (err) {
+    next(err)
+  }
+}
+
+const bulkUpdate = async (req, res, next) => {
+  try {
+    const { field, products } = validateBulkUpdate(req.body)
+    const result = await productsService.bulkUpdate(field, products)
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+const previewDiff = async (req, res, next) => {
+  try {
+    const { field, products } = validateBulkPreview(req.body)
+    const result = await productsService.previewDiff(field, products)
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { list, getById, create, update, remove, bulkCreate, toggleStatus, exportProducts, bulkUpdate, previewDiff }

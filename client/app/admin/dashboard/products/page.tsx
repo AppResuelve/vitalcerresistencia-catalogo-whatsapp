@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Plus, Search, Edit, Trash2, FileSpreadsheet, MoreHorizontal } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, FileSpreadsheet, MoreHorizontal, Download, Upload } from 'lucide-react'
 import { Button } from '@/components/admin/ui/Form'
 import { DropdownSelect } from '@/components/admin/ui/DropdownSelect'
 import { Table } from '@/components/admin/ui/Table'
 import { Modal } from '@/components/admin/ui/Modal'
 import { Spinner } from '@/components/admin/ui/Spinner'
 import BulkProductModal from '@/components/admin/BulkProductModal'
+import BulkUpdateModal from '@/components/admin/BulkUpdateModal'
 import { useProducts } from '@/hooks/admin-useProducts'
 import { useCategories } from '@/hooks/admin-useCategories'
 import { useTags } from '@/hooks/admin-useTags'
@@ -26,6 +27,7 @@ export default function Products() {
   const [tagId, setTagId] = useState(() => searchParams?.get('tagId') || '')
   const [page, setPage] = useState(() => Number(searchParams?.get('page')) || 1)
   const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false)
   const [toggling, setToggling] = useState(null)
   const [selected, setSelected] = useState([])
   const [bulkProcessing, setBulkProcessing] = useState(false)
@@ -136,6 +138,20 @@ export default function Products() {
     if (categoryId) params.set('categoryId', categoryId)
     if (tagId) params.set('tagId', tagId)
     return `/dashboard/products/${productId}?${params.toString()}`
+  }
+
+  const handleExport = async () => {
+    try {
+      const { data } = await api.get('/admin/products/export', { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([data]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'productos.xlsx'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch {
+      Alert.fire({ message: 'Error al exportar productos', type: 'error' })
+    }
   }
 
   const columns = [
@@ -251,6 +267,21 @@ export default function Products() {
                     <FileSpreadsheet className="w-4 h-4" />
                     Creación masiva
                   </button>
+                  <div className="my-1 border-t border-zinc-700" />
+                  <button
+                    onClick={() => { setNewMenuOpen(false); handleExport() }}
+                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Exportar lista
+                  </button>
+                  <button
+                    onClick={() => { setNewMenuOpen(false); setBulkUpdateOpen(true) }}
+                    className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Actualización masiva
+                  </button>
                 </div>
               </>
             )}
@@ -354,6 +385,12 @@ export default function Products() {
         onClose={() => setBulkOpen(false)}
         categories={categories}
         onCreated={refetch}
+      />
+
+      <BulkUpdateModal
+        open={bulkUpdateOpen}
+        onClose={() => setBulkUpdateOpen(false)}
+        onUpdated={refetch}
       />
 
       {/* More actions modal */}

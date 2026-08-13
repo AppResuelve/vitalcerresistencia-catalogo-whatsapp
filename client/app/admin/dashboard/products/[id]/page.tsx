@@ -27,6 +27,7 @@ const EMPTY_PRODUCT = {
   name: '', slug: '', description: '', images: [],
   retailPrice: 0, comparePrice: null, discountPercentage: null,
   wholesalePrice: null, wholesaleMinQty: null,
+  stock: 0,
   status: 'active', tags: [], categoryId: '',
 }
 
@@ -205,6 +206,7 @@ export default function ProductForm() {
         discountPercentage: product.discountPercentage || null,
         wholesalePrice: product.wholesalePrice || null,
         wholesaleMinQty: product.wholesaleMinQty || null,
+        stock: product.skus?.find(s => !s.attributeValues?.length)?.stock ?? 0,
         status: product.status || 'active', tags: product.tags || [],
         categoryId: product.categoryId || '',
       })
@@ -530,6 +532,7 @@ export default function ProductForm() {
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : null,
         wholesalePrice: form.wholesalePrice ? Number(form.wholesalePrice) : null,
         wholesaleMinQty: form.wholesaleMinQty ? Number(form.wholesaleMinQty) : null,
+        stock: Number(form.stock) || 0,
         skus: skus.map(s => ({
           ...(s.id && { id: s.id }),
           retailPrice: Number(s.retailPrice) || 0,
@@ -589,6 +592,12 @@ export default function ProductForm() {
 
         {skus.length === 0 && (
           <>
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="Stock" type="number" min="0"
+                value={form.stock}
+                onChange={(e) => handleChange('stock', e.target.value)} />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
                 <Checkbox checked={form.wholesalePrice != null || form.wholesaleMinQty != null}
