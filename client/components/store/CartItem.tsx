@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { QuantitySelector } from './QuantitySelector'
 import { useCart } from '@/context/CartContext'
 import { formatPrice } from '@/utils/formatPrice'
+import { optimizeImageUrl } from '@/utils/imageUrl'
 
 export function CartItem({ item }) {
   const { updateQuantity, removeItem } = useCart()
@@ -39,7 +40,7 @@ export function CartItem({ item }) {
     <div className="flex gap-4 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
       <Link href={`/productos/${item.slug}`} className="shrink-0">
         <img
-          src={item.images[0]}
+          src={optimizeImageUrl(item.images[0])}
           alt={item.name}
           className="w-24 h-24 object-cover rounded-xl"
         />
