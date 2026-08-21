@@ -446,7 +446,7 @@ export default function ProductForm() {
       const sorted = [...combo].sort((a, b) => a - b)
       const existing = skus.find(s => {
         const sSorted = [...s.attributeValueIds].sort((a, b) => a - b)
-        return sSorted.every(vId => sorted.includes(vId))
+        return sSorted.length === sorted.length && sSorted.every((vId, i) => vId === sorted[i])
       })
       if (existing?.id) { keptIds.add(existing.id); return { ...existing, attributeValueIds: combo } }
 
@@ -479,7 +479,7 @@ export default function ProductForm() {
       s.id && !newSkus.some(ns => {
         const sSorted = [...s.attributeValueIds].sort((a, b) => a - b)
         const nsSorted = [...ns.attributeValueIds].sort((a, b) => a - b)
-        return sSorted.every(vId => nsSorted.includes(vId))
+        return sSorted.length === nsSorted.length && sSorted.every((vId, i) => vId === nsSorted[i])
       })
     )
     const deletedCount = skusAtRisk.length

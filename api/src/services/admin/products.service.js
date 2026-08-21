@@ -101,12 +101,6 @@ const applySyncPrices = (product, skus) => {
   }
 }
 
-const productHasUnitType = (product) => {
-  return (product.skus || []).some(sku =>
-    (sku.attributeValues || []).some(av => av.attribute?.unitType)
-  )
-}
-
 const slugify = (text) => {
   return text
     .toLowerCase()
@@ -278,32 +272,34 @@ const update = async (id, data) => {
     if (skus && skus.length > 0) {
       const basePrices = { retailPrice: product.retailPrice, wholesalePrice: product.wholesalePrice, wholesaleMinQty: product.wholesaleMinQty }
       await syncSkus(product.id, skus, basePrices, t);
-      if (!productHasUnitType(product)) {
+      const allAttrIds = skus.flatMap(s => s.attributeValueIds || []).filter(Boolean)
+      let hasUnitType = false
+      if (allAttrIds.length > 0) {
+        const vals = await AttributeValue.findAll({
+          where: { id: allAttrIds },
+          include: [{ model: Attribute, as: 'attribute', attributes: ['unitType'] }],
+          transaction: t
+        })
+        hasUnitType = vals.some(v => v.attribute?.unitType)
+      }
+      if (!hasUnitType) {
         applySyncPrices(product, skus)
         await product.save({ transaction: t })
       }
     } else {
-      // Producto simple: crear/actualizar SKU base
-      const [baseSku] = await ProductSku.findOrCreate({
-        where: { productId: product.id },
-        defaults: {
-          productId: product.id,
-          retailPrice: product.retailPrice || 0,
-          wholesalePrice: product.wholesalePrice,
-          wholesaleMinQty: product.wholesaleMinQty,
-          stock: stock != null ? Number(stock) : 0, sku: null, images: [], sortOrder: 0, status: 'active',
-        },
-        transaction: t,
-      })
-      if (!baseSku._options?.isNewRecord) {
-        await baseSku.update({
-          retailPrice: product.retailPrice || 0,
-          wholesalePrice: product.wholesalePrice,
-          wholesaleMinQty: product.wholesaleMinQty,
-          ...(stock != null && { stock: Number(stock) }),
-        }, { transaction: t })
-      }
-      await baseSku.setAttributeValues([], { transaction: t })
+      // Producto simple: destruir SKUs viejos (incluye variantes) y crear el SKU base
+      await ProductSku.destroy({ where: { productId: product.id }, transaction: t })
+      await ProductSku.create({
+        productId: product.id,
+        retailPrice: product.retailPrice || 0,
+        wholesalePrice: product.wholesalePrice,
+        wholesaleMinQty: product.wholesaleMinQty,
+        stock: stock != null ? Number(stock) : 0,
+        sku: null,
+        images: [],
+        sortOrder: 0,
+        status: 'active',
+      }, { transaction: t })
     }
     return Product.findByPk(id, { include: [skuInclude], transaction: t });
   });

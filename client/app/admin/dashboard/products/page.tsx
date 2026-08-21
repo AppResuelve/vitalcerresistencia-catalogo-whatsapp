@@ -183,7 +183,7 @@ export default function Products() {
     {
       header: 'Variantes',
       accessor: (p) => (
-        <span className="text-sm text-zinc-400">{p.skus?.length ?? 0}</span>
+        <span className="text-sm text-zinc-400">{(p.skus || []).filter(s => s.attributeValues?.length > 0).length}</span>
       ),
     },
     {
