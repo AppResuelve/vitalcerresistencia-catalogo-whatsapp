@@ -22,12 +22,6 @@ function StoreInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isHome = pathname === '/'
 
-  const billingStatus = store?.billing_status || 'active'
-  const status = billingStatus === 'suspended' ? 'suspended' : store?.store_status || 'active'
-
-  if (loading) return null
-  if (status !== 'active') return <StoreBlocked status={status} />
-
   const handleOrderConfirmed = useCallback((data: { sucursal: any; deliveryMethod: string; name?: string; address?: string }) => {
     const baseMessage = pendingWhatsAppMessage || encodeURIComponent("Hola! Quiero consultar por un producto.")
     let message = baseMessage
@@ -52,6 +46,12 @@ function StoreInner({ children }: { children: React.ReactNode }) {
     setShowCartDrawer(false)
     setShowSucursalModal(true)
   }, [])
+
+  const billingStatus = store?.billing_status || 'active'
+  const status = billingStatus === 'suspended' ? 'suspended' : store?.store_status || 'active'
+
+  if (loading) return null
+  if (status !== 'active') return <StoreBlocked status={status} />
 
   return (
     <OrderContext.Provider value={{ requestOrder }}>
