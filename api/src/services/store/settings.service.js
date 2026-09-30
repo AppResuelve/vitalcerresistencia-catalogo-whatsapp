@@ -2,6 +2,7 @@ const { Setting } = require('../../models')
 
 const DEFAULTS = [
   { key: 'store_status', value: 'active' },
+  { key: 'billing_status', value: 'active' },
   { key: 'whatsapp_number', value: '' },
   { key: 'business_name', value: '' },
   { key: 'business_slogan', value: '' },

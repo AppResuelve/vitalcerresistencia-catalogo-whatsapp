@@ -10,14 +10,23 @@ import { Footer } from "@/components/store/Footer"
 import { FloatingWhatsAppButton } from "@/components/ui/FloatingWhatsAppButton"
 import { ScrollToTop } from "@/components/ScrollToTop"
 import { CartDrawer } from "@/components/store/CartDrawer"
+import { StoreBlocked } from "@/components/store/StoreBlocked"
+import { useStore } from "@/context/StoreContext"
 import SucursalModal from "@/components/SucursalModal"
 
 function StoreInner({ children }: { children: React.ReactNode }) {
+  const { store, loading } = useStore()
   const [showSucursalModal, setShowSucursalModal] = useState(false)
   const [showCartDrawer, setShowCartDrawer] = useState(false)
   const [pendingWhatsAppMessage, setPendingWhatsAppMessage] = useState<string | null>(null)
   const pathname = usePathname()
   const isHome = pathname === '/'
+
+  const billingStatus = store?.billing_status || 'active'
+  const status = billingStatus === 'suspended' ? 'suspended' : store?.store_status || 'active'
+
+  if (loading) return null
+  if (status !== 'active') return <StoreBlocked status={status} />
 
   const handleOrderConfirmed = useCallback((data: { sucursal: any; deliveryMethod: string; name?: string; address?: string }) => {
     const baseMessage = pendingWhatsAppMessage || encodeURIComponent("Hola! Quiero consultar por un producto.")

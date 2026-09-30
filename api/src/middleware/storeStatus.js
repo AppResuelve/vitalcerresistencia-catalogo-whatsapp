@@ -1,7 +1,13 @@
 const { Setting } = require('../models')
+const { getStatus: getBillingStatus } = require('../services/billing.service')
 
 const storeStatus = async (req, res, next) => {
   try {
+    const billingStatus = await getBillingStatus()
+    if (billingStatus === 'suspended') {
+      return res.status(503).json({ error: 'store_suspended', message: 'Tienda suspendida por falta de pago. Contactanos.' })
+    }
+
     const row = await Setting.findOne({ where: { key: 'store_status' } })
     const status = row?.value || 'active'
 

@@ -17,8 +17,9 @@ export function StoreProvider({ children }) {
         const settings = await settingsService.get()
         setStore(settings)
 
+        const billingStatus = settings.billing_status || 'active'
         const status = settings.store_status || 'active'
-        if (status !== 'active') {
+        if (billingStatus === 'suspended' || status !== 'active') {
           setCategories([])
           setProductsMap({})
           return
