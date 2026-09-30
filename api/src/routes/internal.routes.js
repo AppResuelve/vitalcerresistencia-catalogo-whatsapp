@@ -9,5 +9,7 @@ router.post('/resend-activation', internalAuth, internalController.resendActivat
 router.post('/seed-settings', internalAuth, internalController.seedSettings)
 router.post('/seed-products', internalAuth, internalController.seedProducts)
 router.post('/seed-services', internalAuth, internalController.seedServices)
+router.get('/billing-status', internalAuth, internalController.getBillingStatus)
+router.post('/billing-status', internalAuth, internalController.setBillingStatus)
 
 module.exports = router

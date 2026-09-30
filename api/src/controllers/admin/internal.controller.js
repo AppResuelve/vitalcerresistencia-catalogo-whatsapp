@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const { User, Setting, Product, Service } = require('../../models')
 const emailService = require('../../services/email.service')
+const { getStatus: getBillingStatus, setStatus: setBillingStatus } = require('../../services/billing.service')
 
 const seedSettings = async (req, res, next) => {
   try {
@@ -248,4 +249,34 @@ const resendActivation = async (req, res, next) => {
   }
 }
 
-module.exports = { createAdmin, seedSettings, seedProducts, seedServices, getAdminStatus, resendActivation }
+const setBillingStatusInternal = async (req, res, next) => {
+  try {
+    const { status } = req.body
+    if (!status) {
+      return res.status(400).json({ error: 'status es requerido' })
+    }
+    await setBillingStatus(status)
+    res.json({ success: true, billing_status: await getBillingStatus() })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const getBillingStatusInternal = async (req, res, next) => {
+  try {
+    res.json({ billing_status: await getBillingStatus() })
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = {
+  createAdmin,
+  seedSettings,
+  seedProducts,
+  seedServices,
+  getAdminStatus,
+  resendActivation,
+  setBillingStatus: setBillingStatusInternal,
+  getBillingStatus: getBillingStatusInternal,
+}
